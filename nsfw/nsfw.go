@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 
 	"s/utils"
 )
@@ -18,17 +19,27 @@ type Result struct {
 	Confidence float64
 }
 
-func Check(path string) (*Result, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
+func Check(input string) (*Result, error) {
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
 	part, _ := writer.CreateFormFile("file", "image.jpg")
-	io.Copy(part, file)
+
+	if strings.HasPrefix(input, "http://") || strings.HasPrefix(input, "https://") {
+		resp, err := utils.Hc.Get(input)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+		io.Copy(part, resp.Body)
+	} else {
+		file, err := os.Open(input)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		io.Copy(part, file)
+	}
+
 	writer.Close()
 
 	req, _ := http.NewRequest("POST", "https://www.nyckel.com/v1/functions/o2f0jzcdyut2qxhu/invoke", &buf)
