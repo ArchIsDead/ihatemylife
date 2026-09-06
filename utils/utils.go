@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"runtime"
+	"os/exec"
 	"strings"
 	"time"
 )
@@ -17,17 +17,17 @@ func M() {
 	fmt.Println(T("[ MENU ]"))
 	fmt.Println(H())
 	fmt.Println(G("[01]") + W(" NUPTK Search"))
-	fmt.Println(G("[02]") + W(" List Provinsi"))
-	fmt.Println(G("[03]") + W(" List Kota"))
+	fmt.Println(G("[02]") + W(" List Provinces"))
+	fmt.Println(G("[03]") + W(" List Cities"))
 	fmt.Println(G("[04]") + W(" DAPO Progress"))
 	fmt.Println(G("[05]") + W(" Username Scan"))
-	fmt.Println(G("[06]") + W(" Cari Sekolah"))
-	fmt.Println(G("[07]") + W(" Info Sekolah"))
+	fmt.Println(G("[06]") + W(" Search School"))
+	fmt.Println(G("[07]") + W(" School Info"))
 	fmt.Println(G("[08]") + W(" IP Check"))
 	fmt.Println(G("[09]") + W(" Current IP"))
 	fmt.Println(G("[10]") + W(" Device Info"))
 	fmt.Println(G("[11]") + W(" Stats"))
-	fmt.Println(G("[12]") + W(" Kodepos Search"))
+	fmt.Println(G("[12]") + W(" Postal Code Search"))
 	fmt.Println(G("[13]") + W(" NIK Parser"))
 	fmt.Println(G("[14]") + W(" Instagram Viewer"))
 	fmt.Println(G("[00]") + R(" Exit"))
@@ -45,22 +45,49 @@ func P(r *bufio.Reader, l string) string {
 	return strings.TrimSpace(v)
 }
 
-func Up() string {
-	d := time.Since(st)
-	h := int(d.Hours())
-	m := int(d.Minutes()) % 60
-	s := int(d.Seconds()) % 60
-	return fmt.Sprintf("%dh %dm %ds", h, m, s)
+func sh(cmd string) string {
+	out, err := exec.Command("sh", "-c", cmd).Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
+}
+
+func Up() {
+	raw := sh("cat /proc/uptime")
+	p := strings.Fields(raw)
+	if len(p) < 1 {
+		fmt.Println(G("Uptime: ") + W("0h 0m 0s"))
+		return
+	}
+	var sec float64
+	fmt.Sscanf(p[0], "%f", &sec)
+	h := int(sec) / 3600
+	m := (int(sec) % 3600) / 60
+	s := int(sec) % 60
+	fmt.Println(G("Uptime: ") + W(fmt.Sprintf("%dh %dm %ds", h, m, s)))
+	fmt.Println(H())
 }
 
 func Di() map[string]interface{} {
 	hn, _ := os.Hostname()
+	wd, _ := os.Getwd()
+	raw := sh("cat /proc/uptime")
+	p := strings.Fields(raw)
+	up := "0h 0m 0s"
+	if len(p) >= 1 {
+		var sec float64
+		fmt.Sscanf(p[0], "%f", &sec)
+		h := int(sec) / 3600
+		m := (int(sec) % 3600) / 60
+		s := int(sec) % 60
+		up = fmt.Sprintf("%dh %dm %ds", h, m, s)
+	}
 	return map[string]interface{}{
 		"hostname": hn,
-		"os":       runtime.GOOS,
-		"arch":     runtime.GOARCH,
-		"cpus":     runtime.NumCPU(),
-		"go":       runtime.Version(),
-		"uptime":   Up(),
+		"workdir":  wd,
+		"pid":      os.Getpid(),
+		"uptime":   up,
+		"app_up":   time.Since(st).String(),
 	}
 }
