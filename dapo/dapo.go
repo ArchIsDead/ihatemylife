@@ -34,7 +34,10 @@ func token() (string, string, error) {
 }
 
 func fetchAPI(p string, q map[string]string) (map[string]interface{}, error) {
-	t, u := token()
+	t, u, err := token()
+	if err != nil {
+		return nil, err
+	}
 	qq := ""
 	for k, v := range q {
 		if qq != "" {
@@ -93,7 +96,10 @@ func ProgressSekolah(k, j string) (map[string]interface{}, error) {
 }
 
 func CariSekolah(q string) (map[string]interface{}, error) {
-	t, u := token()
+	t, u, err := token()
+	if err != nil {
+		return nil, err
+	}
 	bd, err := utils.F(u+"/api/detail-sekolah/search?q="+q, map[string]string{
 		"Authorization": "Bearer " + t,
 	})
@@ -108,7 +114,10 @@ func CariSekolah(q string) (map[string]interface{}, error) {
 }
 
 func InfoSekolah(n string) (map[string]interface{}, error) {
-	t, u := token()
+	t, u, err := token()
+	if err != nil {
+		return nil, err
+	}
 	bd, err := utils.F(u+"/api/detail-sekolah?npsn="+n, map[string]string{
 		"Authorization": "Bearer " + t,
 	})
