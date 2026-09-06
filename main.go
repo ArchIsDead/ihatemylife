@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 
 	"s/commands"
@@ -19,48 +21,76 @@ var banner = `
         \/              \/      \/      \/    \/ 
 `
 
+func clear() {
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	} else {
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
 func main() {
+	clear()
 	utils.ShowBanner(banner)
-	utils.Sub("s\n")
 	r := bufio.NewReader(os.Stdin)
 	for {
 		utils.Menu()
-		utils.ShowUp()
 		fmt.Print(utils.Prompt("\n> "))
 		x, _ := r.ReadString('\n')
 		x = strings.TrimSpace(x)
+		x = strings.TrimLeft(x, "0")
+		if x == "" {
+			x = "0"
+		}
 		switch x {
 		case "1":
+			clear()
 			commands.N(r)
 		case "2":
-			commands.P()
-		case "3":
-			commands.K(r)
-		case "4":
+			clear()
 			commands.D(r)
-		case "5":
+		case "3":
+			clear()
 			commands.U(r)
-		case "6":
+		case "4":
+			clear()
 			commands.CS(r)
-		case "7":
+		case "5":
+			clear()
 			commands.IS(r)
-		case "8":
+		case "6":
+			clear()
 			commands.IP(r)
-		case "9":
+		case "7":
+			clear()
 			commands.CIP()
-		case "10":
-			commands.DI()
-		case "11":
-			commands.ST()
-		case "12":
+		case "8":
+			clear()
 			commands.KP(r)
-		case "13":
+		case "9":
+			clear()
 			commands.NP(r)
-		case "14":
-			commands.PV(r)
+		case "10":
+			clear()
+			commands.WZ(r)
+		case "11":
+			clear()
+			commands.TM(r)
+		case "12":
+			clear()
+			commands.DR(r)
 		case "0", "exit", "quit":
+			clear()
 			utils.Err("Exit.")
 			os.Exit(0)
+		default:
+			clear()
+			utils.ShowBanner(banner)
+			utils.Err("Unknown command.")
 		}
 	}
 }
