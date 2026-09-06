@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"s/c"
-	"s/u"
+	"s/commands"
+	"s/utils"
 )
 
-var b = `
+var banner = `
   _________     .__       ____         .___      
  /   _____/__ __|__| ____/_   |      __| _/____  
  \_____  \|  |  \  |/ ___\|   |     / __ |/ __ \ 
@@ -20,50 +20,50 @@ var b = `
 `
 
 func main() {
-	fmt.Println(u.B(b))
-	fmt.Println(u.S("s\n"))
+	fmt.Println(utils.B(banner))
+	fmt.Println(utils.S("s\n"))
 	r := bufio.NewReader(os.Stdin)
-	u.M()
+	utils.M()
 	for {
-		fmt.Print(u.P("\n> "))
+		fmt.Print(utils.P("\n> "))
 		x, _ := r.ReadString('\n')
 		x = strings.TrimSpace(x)
 		switch x {
 		case "1":
-			c.N(r)
+			commands.N(r)
 		case "2":
-			c.P()
+			commands.P()
 		case "3":
-			c.K(r)
+			commands.K(r)
 		case "4":
-			c.D(r)
+			commands.D(r)
 		case "5":
-			c.U(r)
+			commands.U(r)
 		case "6":
-			c.CS(r)
+			commands.CS(r)
 		case "7":
-			c.IS(r)
+			commands.IS(r)
 		case "8":
-			c.IP(r)
+			commands.IP(r)
 		case "9":
-			c.CIP()
+			commands.CIP()
 		case "10":
-			c.DI()
+			commands.DI()
 		case "11":
-			c.ST()
+			commands.ST()
 		case "12":
-			c.KP(r)
+			commands.KP(r)
 		case "13":
-			c.NP(r)
+			commands.NP(r)
 		case "14":
-			c.PV(r)
+			commands.PV(r)
 		case "0", "exit", "quit":
-			fmt.Println(u.E("Exit."))
+			fmt.Println(utils.E("Exit."))
 			os.Exit(0)
 		case "help", "menu":
-			u.M()
+			utils.M()
 		default:
-			u.M()
+			utils.M()
 		}
 	}
 }
