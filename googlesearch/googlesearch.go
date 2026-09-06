@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"s/utils"
@@ -29,10 +30,19 @@ type Item struct {
 }
 
 func Search(q string) (*Result, error) {
-	u := "http://goosh.org/q.php?q=" + q
+	params := url.Values{
+		"q":     {q},
+		"start": {"1"},
+		"hl":    {"en"},
+		"safe":  {"off"},
+		"rsz":   {"large"},
+	}
+
+	u := "http://goosh.org/q.php?" + params.Encode()
 	req, _ := http.NewRequest("GET", u, nil)
 	req.Header.Set("Referer", "https://goosh.org/")
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/130.0.0.0 Mobile Safari/537.36")
+
 	resp, err := utils.Hc.Do(req)
 	if err != nil {
 		return nil, err
@@ -46,9 +56,12 @@ func Search(q string) (*Result, error) {
 	rawStr = strings.TrimSuffix(rawStr, ");")
 	rawStr = strings.TrimSpace(rawStr)
 
+	rawStr = strings.ReplaceAll(rawStr, "undefined", "null")
+	rawStr = strings.ReplaceAll(rawStr, "NaN", "0")
+
 	var raw map[string]interface{}
 	if err := json.Unmarshal([]byte(rawStr), &raw); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parse error: %v", err)
 	}
 
 	r := &Result{Query: q}
