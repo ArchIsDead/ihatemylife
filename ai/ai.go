@@ -250,16 +250,6 @@ func (c *Client) Chat(prompt string) (string, error) {
 	return result, nil
 }
 
-func (c *Client) Show(prompt, reply string) {
-	fmt.Println(utils.Div())
-	fmt.Println(utils.Bld(utils.Wht("[ RFOUR ]")))
-	fmt.Println(utils.Div())
-	fmt.Println(utils.Gry("You: ") + utils.Wht(prompt))
-	fmt.Println()
-	fmt.Println(utils.Gry("rfour: "))
-	fmt.Println(utils.Wht(reply))
-}
-
 func setHeaders(req *http.Request, cookie string) {
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 	req.Header.Set("Origin", siteURL)
