@@ -42,7 +42,7 @@ func back(r *bufio.Reader) {
 
 func N(r *bufio.Reader) {
 	fmt.Println(utils.Div())
-	fmt.Println(utils.Bld(utils.Wht("[ NUPTK SEARCH ]")))
+	fmt.Println(utils.Bld(utils.Wht("[ CHECK PTK ]")))
 	fmt.Println(utils.Div())
 	fmt.Println(utils.Gry("Examples:"))
 	fmt.Println(utils.Gry("  Keyword: Novy"))
