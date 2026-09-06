@@ -33,10 +33,9 @@ func clear() {
 	}
 }
 
-func main() {
+func showMain(r *bufio.Reader) {
 	clear()
 	utils.ShowBanner(banner)
-	r := bufio.NewReader(os.Stdin)
 	for {
 		utils.Menu()
 		fmt.Print(utils.Prompt("\n> "))
@@ -51,54 +50,80 @@ func main() {
 			clear()
 			utils.ShowBanner(banner)
 			commands.N(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "2":
 			clear()
 			utils.ShowBanner(banner)
 			commands.D(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "3":
 			clear()
 			utils.ShowBanner(banner)
 			commands.U(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "4":
 			clear()
 			utils.ShowBanner(banner)
 			commands.CS(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "5":
 			clear()
 			utils.ShowBanner(banner)
 			commands.IS(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "6":
 			clear()
 			utils.ShowBanner(banner)
 			commands.IP(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "7":
 			clear()
 			utils.ShowBanner(banner)
 			commands.CIP()
+			clear()
+			utils.ShowBanner(banner)
 		case "8":
 			clear()
 			utils.ShowBanner(banner)
 			commands.KP(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "9":
 			clear()
 			utils.ShowBanner(banner)
 			commands.NP(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "10":
 			clear()
 			utils.ShowBanner(banner)
 			commands.WZ(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "11":
 			clear()
 			utils.ShowBanner(banner)
 			commands.TM(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "12":
 			clear()
 			utils.ShowBanner(banner)
 			commands.NS(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "13":
 			clear()
 			utils.ShowBanner(banner)
 			commands.GS(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "0", "exit", "quit":
 			clear()
 			utils.Err("Exit.")
@@ -109,4 +134,9 @@ func main() {
 			utils.Err("Unknown command.")
 		}
 	}
+}
+
+func main() {
+	r := bufio.NewReader(os.Stdin)
+	showMain(r)
 }
