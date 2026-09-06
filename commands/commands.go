@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"s/ai"
 	"s/dapo"
 	"s/decoder"
 	"s/encoder"
@@ -436,6 +437,31 @@ func PR(r *bufio.Reader) {
 			music.Stop()
 			utils.Err("Music OFF")
 		}
+	}
+	back(r)
+}
+
+func AI(r *bufio.Reader) {
+	client := ai.New()
+	utils.Err("Initializing AI...")
+	if err := client.Init(); err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+
+	utils.Err("Type 'exit' to leave chat.")
+	for {
+		prompt := utils.Ask(r, "You: ")
+		if prompt == "exit" || prompt == "quit" || prompt == "0" {
+			break
+		}
+		reply, err := client.Chat(prompt)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+			break
+		}
+		client.Show(prompt, reply)
 	}
 	back(r)
 }
