@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -37,6 +38,11 @@ func Menu() {
 	fmt.Println(Gry("[21]") + Wht(" Web2APK"))
 	fmt.Println(Gry("[00]") + Red(" Exit"))
 	fmt.Println(Div())
+}
+
+func PrintJSON(v interface{}) {
+	b, _ := json.MarshalIndent(v, "", "  ")
+	fmt.Println(string(b))
 }
 
 func Ask(r *bufio.Reader, l string) string {
