@@ -12,35 +12,35 @@ import (
 
 var st = time.Now()
 
-func M() {
-	fmt.Println(H())
-	fmt.Println(T("[ MENU ]"))
-	fmt.Println(H())
-	fmt.Println(G("[01]") + W(" NUPTK Search"))
-	fmt.Println(G("[02]") + W(" List Provinces"))
-	fmt.Println(G("[03]") + W(" List Cities"))
-	fmt.Println(G("[04]") + W(" DAPO Progress"))
-	fmt.Println(G("[05]") + W(" Username Scan"))
-	fmt.Println(G("[06]") + W(" Search School"))
-	fmt.Println(G("[07]") + W(" School Info"))
-	fmt.Println(G("[08]") + W(" IP Check"))
-	fmt.Println(G("[09]") + W(" Current IP"))
-	fmt.Println(G("[10]") + W(" Device Info"))
-	fmt.Println(G("[11]") + W(" Stats"))
-	fmt.Println(G("[12]") + W(" Postal Code Search"))
-	fmt.Println(G("[13]") + W(" NIK Parser"))
-	fmt.Println(G("[14]") + W(" Instagram Viewer"))
-	fmt.Println(G("[00]") + R(" Exit"))
-	fmt.Println(H())
+func Menu() {
+	fmt.Println(Div())
+	fmt.Println(Title("[ MENU ]"))
+	fmt.Println(Div())
+	fmt.Println(Gry("[01]") + Wht(" NUPTK Search"))
+	fmt.Println(Gry("[02]") + Wht(" List Provinces"))
+	fmt.Println(Gry("[03]") + Wht(" List Cities"))
+	fmt.Println(Gry("[04]") + Wht(" DAPO Progress"))
+	fmt.Println(Gry("[05]") + Wht(" Username Scan"))
+	fmt.Println(Gry("[06]") + Wht(" Search School"))
+	fmt.Println(Gry("[07]") + Wht(" School Info"))
+	fmt.Println(Gry("[08]") + Wht(" IP Check"))
+	fmt.Println(Gry("[09]") + Wht(" Current IP"))
+	fmt.Println(Gry("[10]") + Wht(" Device Info"))
+	fmt.Println(Gry("[11]") + Wht(" Stats"))
+	fmt.Println(Gry("[12]") + Wht(" Postal Code Search"))
+	fmt.Println(Gry("[13]") + Wht(" NIK Parser"))
+	fmt.Println(Gry("[14]") + Wht(" Instagram Viewer"))
+	fmt.Println(Gry("[00]") + Red(" Exit"))
+	fmt.Println(Div())
 }
 
-func O(v interface{}) {
+func PrintJSON(v interface{}) {
 	b, _ := json.MarshalIndent(v, "", "  ")
-	fmt.Println(J(string(b)))
+	fmt.Println(JSON(string(b)))
 }
 
-func P(r *bufio.Reader, l string) string {
-	fmt.Print(P(l))
+func Ask(r *bufio.Reader, l string) string {
+	fmt.Print(Prompt(l))
 	v, _ := r.ReadString('\n')
 	return strings.TrimSpace(v)
 }
@@ -67,12 +67,12 @@ func UpStr() string {
 	return fmt.Sprintf("%dh %dm %ds", h, m, s)
 }
 
-func Up() {
-	fmt.Println(G("Uptime: ") + W(UpStr()))
-	fmt.Println(H())
+func ShowUp() {
+	fmt.Println(Gry("Uptime: ") + Wht(UpStr()))
+	fmt.Println(Div())
 }
 
-func Di() map[string]interface{} {
+func DeviceInfo() map[string]interface{} {
 	hn, _ := os.Hostname()
 	wd, _ := os.Getwd()
 	return map[string]interface{}{
