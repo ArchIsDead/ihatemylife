@@ -2,53 +2,56 @@ package commands
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
+	"os/exec"
+	"runtime"
 	"strconv"
 
 	"s/dapo"
+	"s/downr"
 	"s/kodepos"
 	"s/nikparser"
-	"s/protonviewer"
 	"s/simpkb"
+	"s/tracemoe"
 	"s/utils"
+	"s/web2zip"
 	"s/whatsmyname"
 )
 
+func clear() {
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	} else {
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
+func back(r *bufio.Reader) {
+	utils.Ask(r, "Press Enter to return...")
+	clear()
+}
+
 func N(r *bufio.Reader) {
 	k := utils.Ask(r, "Keyword: ")
-	p := utils.Ask(r, "Province: ")
-	kk := utils.Ask(r, "City: ")
+	p := utils.Ask(r, "Province Code: ")
+	kk := utils.Ask(r, "City Code: ")
 	dp := utils.Ask(r, "Dapodik 0/1/empty: ")
 	ps := utils.Ask(r, "Passport 0/1/empty: ")
 	pg := utils.Ask(r, "Page: ")
 	res, err := simpkb.Cari(k, p, kk, ps, dp, pg)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
+		back(r)
 		return
 	}
-	utils.PrintJSON(res)
-}
-
-func P() {
-	res, err := simpkb.Provinsi()
-	if err != nil {
-		utils.Err("Error: " + err.Error())
-		return
-	}
-	utils.PrintJSON(res)
-}
-
-func K(r *bufio.Reader) {
-	res, err := simpkb.Kota()
-	if err != nil {
-		utils.Err("Error: " + err.Error())
-		return
-	}
-	utils.PrintJSON(res)
+	res.Show()
+	back(r)
 }
 
 func D(r *bufio.Reader) {
@@ -57,38 +60,68 @@ func D(r *bufio.Reader) {
 	case "province":
 		j := utils.Ask(r, "Level: ")
 		st := utils.Ask(r, "Status: ")
-		res, _ := dapo.ProgressProvinsi(j, st)
-		utils.PrintJSON(res)
+		res, err := dapo.ProgressProvinsi(j, st)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+			back(r)
+			return
+		}
+		res.Show()
 	case "regency":
 		k := utils.Ask(r, "Province Code: ")
 		j := utils.Ask(r, "Level: ")
 		st := utils.Ask(r, "Status: ")
-		res, _ := dapo.ProgressKabupaten(k, j, st)
-		utils.PrintJSON(res)
+		res, err := dapo.ProgressKabupaten(k, j, st)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+			back(r)
+			return
+		}
+		res.Show()
 	case "district":
 		k := utils.Ask(r, "Regency Code: ")
 		j := utils.Ask(r, "Level: ")
 		st := utils.Ask(r, "Status: ")
-		res, _ := dapo.ProgressKecamatan(k, j, st)
-		utils.PrintJSON(res)
+		res, err := dapo.ProgressKecamatan(k, j, st)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+			back(r)
+			return
+		}
+		res.Show()
 	case "school":
 		k := utils.Ask(r, "District Code: ")
 		j := utils.Ask(r, "Level: ")
-		res, _ := dapo.ProgressSekolah(k, j)
-		utils.PrintJSON(res)
+		res, err := dapo.ProgressSekolah(k, j)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+			back(r)
+			return
+		}
+		res.Show()
+	default:
+		utils.Err("Invalid mode.")
 	}
+	back(r)
 }
 
 func U(r *bufio.Reader) {
 	n := utils.Ask(r, "Username: ")
 	m := utils.Ask(r, "Mode all/exist/notexist: ")
 	rc := utils.Ask(r, "Rescan true/false: ")
-	res, err := whatsmyname.Scan(n, m, rc)
+	pg := utils.Ask(r, "Page: ")
+	pi, _ := strconv.Atoi(pg)
+	if pi < 1 {
+		pi = 1
+	}
+	res, err := whatsmyname.Scan(n, m, rc, pi)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
+		back(r)
 		return
 	}
-	utils.PrintJSON(res)
+	res.Show()
+	back(r)
 }
 
 func CS(r *bufio.Reader) {
@@ -96,9 +129,11 @@ func CS(r *bufio.Reader) {
 	res, err := dapo.CariSekolah(q)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
+		back(r)
 		return
 	}
-	utils.PrintJSON(res)
+	res.Show()
+	back(r)
 }
 
 func IS(r *bufio.Reader) {
@@ -106,49 +141,38 @@ func IS(r *bufio.Reader) {
 	res, err := dapo.InfoSekolah(n)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
+		back(r)
 		return
 	}
-	utils.PrintJSON(res)
+	res.Show()
+	back(r)
 }
 
 func IP(r *bufio.Reader) {
 	ip := utils.Ask(r, "IP Address: ")
-	res, err := http.Get("http://ip-api.com/json/" + ip)
+	resp, err := http.Get("http://ip-api.com/json/" + ip)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
+		back(r)
 		return
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 	var o map[string]interface{}
-	json.NewDecoder(res.Body).Decode(&o)
+	json.NewDecoder(resp.Body).Decode(&o)
 	utils.PrintJSON(o)
+	back(r)
 }
 
 func CIP() {
-	res, err := http.Get("http://ip-api.com/json/")
+	resp, err := http.Get("http://ip-api.com/json/")
 	if err != nil {
 		utils.Err("Error: " + err.Error())
 		return
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 	var o map[string]interface{}
-	json.NewDecoder(res.Body).Decode(&o)
+	json.NewDecoder(resp.Body).Decode(&o)
 	utils.PrintJSON(o)
-}
-
-func DI() {
-	utils.PrintJSON(utils.DeviceInfo())
-}
-
-func ST() {
-	host, _ := os.Hostname()
-	ips, _ := net.LookupIP(host)
-	fmt.Println(utils.Title("[ STATS ]"))
-	fmt.Println(utils.Gry("Hostname: ") + utils.Wht(host))
-	for _, ip := range ips {
-		fmt.Println(utils.Gry("IP: ") + utils.Wht(ip.String()))
-	}
-	fmt.Println(utils.Gry("Uptime: ") + utils.Wht(utils.UpStr()))
 }
 
 func KP(r *bufio.Reader) {
@@ -158,13 +182,14 @@ func KP(r *bufio.Reader) {
 	if pi < 1 {
 		pi = 1
 	}
-	res, tp, err := kodepos.Cari(q, pi)
+	res, err := kodepos.Cari(q, pi)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
+		back(r)
 		return
 	}
-	fmt.Println(utils.Acc(fmt.Sprintf("Total: %d | Page: %d/%d", len(res), pi, tp)))
-	utils.PrintJSON(res)
+	res.Show()
+	back(r)
 }
 
 func NP(r *bufio.Reader) {
@@ -172,28 +197,45 @@ func NP(r *bufio.Reader) {
 	res, err := nikparser.Parse(n)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
+		back(r)
 		return
 	}
-	utils.PrintJSON(res)
+	res.Show()
+	back(r)
 }
 
-func PV(r *bufio.Reader) {
-	n := utils.Ask(r, "Instagram Username: ")
-	c := protonviewer.New()
-	res, err := c.UserInfo(n)
+func WZ(r *bufio.Reader) {
+	u := utils.Ask(r, "URL: ")
+	res, err := web2zip.Save(u)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
+		back(r)
 		return
 	}
-	id := c.ID(res)
-	fmt.Println(utils.Gry("User ID: ") + utils.Wht(id))
-	utils.PrintJSON(res)
-	if id != "" {
-		st, _ := c.Stories(n)
-		utils.PrintJSON(st)
-		hi, _ := c.Highlights(id)
-		utils.PrintJSON(hi)
+	res.Show()
+	back(r)
+}
+
+func TM(r *bufio.Reader) {
+	p := utils.Ask(r, "Image Path: ")
+	res, err := tracemoe.Search(p)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
 	}
-	ps, _ := c.Posts(n, "")
-	utils.PrintJSON(ps)
+	res.Show()
+	back(r)
+}
+
+func DR(r *bufio.Reader) {
+	u := utils.Ask(r, "URL: ")
+	res, err := downr.Download(u)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+	res.Show()
+	back(r)
 }
