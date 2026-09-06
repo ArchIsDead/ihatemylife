@@ -29,6 +29,11 @@ func Menu() {
 	fmt.Println(Gry("[13]") + Wht(" Google Search"))
 	fmt.Println(Gry("[14]") + Wht(" URL Unshortener"))
 	fmt.Println(Gry("[15]") + Wht(" URL Shortener"))
+	fmt.Println(Gry("[16]") + Wht(" SFL Bypass"))
+	fmt.Println(Gry("[17]") + Wht(" Hash Generator"))
+	fmt.Println(Gry("[18]") + Wht(" Encoder"))
+	fmt.Println(Gry("[19]") + Wht(" Decoder"))
+	fmt.Println(Gry("[20]") + Wht(" Presets"))
 	fmt.Println(Gry("[00]") + Red(" Exit"))
 	fmt.Println(Div())
 }
