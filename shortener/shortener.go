@@ -14,11 +14,11 @@ import (
 )
 
 type Result struct {
-	XGD  string
-	Uto  string
-	Walee string
-	EJUZ string
-	H1NU string
+	XGD     string
+	Uto     string
+	Walee   string
+	EJUZ    string
+	H1NU    string
 	Referis string
 }
 
@@ -105,9 +105,9 @@ func caesarDecode(s string, shift int) string {
 	var out strings.Builder
 	for _, c := range s {
 		if c >= 'a' && c <= 'z' {
-			out.WriteByte(byte((c-'a'-byte(shift)+26)%26 + 'a'))
+			out.WriteRune((c-'a'-rune(shift)+26)%26 + 'a')
 		} else if c >= 'A' && c <= 'Z' {
-			out.WriteByte(byte((c-'A'-byte(shift)+26)%26 + 'A'))
+			out.WriteRune((c-'A'-rune(shift)+26)%26 + 'A')
 		} else {
 			out.WriteRune(c)
 		}
