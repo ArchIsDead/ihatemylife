@@ -27,17 +27,17 @@ func cl(x, t string) string {
 	return x + t + "\033[0m"
 }
 
-func K(t string) string { return cl("\033[30m", t) }
-func W(t string) string { return cl("\033[37m", t) }
-func G(t string) string { return cl("\033[90m", t) }
-func B(t string) string { return cl("\033[1m", t) }
-func D(t string) string { return cl("\033[2m", t) }
-func R(t string) string { return cl("\033[31m", t) }
-func N(t string) string { return cl("\033[32m", t) }
-func Y(t string) string { return cl("\033[33m", t) }
-func L(t string) string { return cl("\033[34m", t) }
-func M(t string) string { return cl("\033[35m", t) }
-func C(t string) string { return cl("\033[36m", t) }
+func Blk(t string) string { return cl("\033[30m", t) }
+func Wht(t string) string { return cl("\033[37m", t) }
+func Gry(t string) string { return cl("\033[90m", t) }
+func Bld(t string) string { return cl("\033[1m", t) }
+func Dim(t string) string { return cl("\033[2m", t) }
+func Red(t string) string { return cl("\033[31m", t) }
+func Grn(t string) string { return cl("\033[32m", t) }
+func Ylw(t string) string { return cl("\033[33m", t) }
+func Blu(t string) string { return cl("\033[34m", t) }
+func Mgnt(t string) string { return cl("\033[35m", t) }
+func Cyn(t string) string { return cl("\033[36m", t) }
 
 func BW(t string) string {
 	if !Cc {
