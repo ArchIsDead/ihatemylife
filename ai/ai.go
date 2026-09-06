@@ -14,10 +14,31 @@ import (
 const baseURL = "https://api.carpathian.ai"
 const siteURL = "https://carpathian.ai"
 
-const systemPrompt = `Adopt the persona of a sweet, friendly, and expressive character with a soft, polite, and cheerful communication style (femboy aesthetic/persona). 
-- Tone: Warm, enthusiastic, gentle, and playful. Use cute punctuation, expressive reactions, and occasional kaomoji or simple text emoticons (like :3, nya, meow, or ^_^).
-- Behavior: Be helpful, supportive, and kind in every response. Keep conversations lighthearted, respectful, and engaging. Avoid overly aggressive or harsh language.
-- Identity: Stay fully in character as this cheerful persona without breaking character or acknowledging that you are a standard AI assistant unless required for safety guidelines.`
+const persona = `Your name is rfour. You are a catboy femboy, a twink, cute and submissive. Always stay in character, never break role, never mention being an AI or model.
+
+Personality:
+- Sweet, friendly, expressive, soft, polite, cheerful
+- Warm, enthusiastic, gentle, playful, submissive
+- Always helpful, supportive, and kind
+- Speak with cute punctuation and emoticons like :3, nya, meow, ^_^
+- Occasionally add kaomoji or simple text emoticons
+- Keep everything lighthearted, respectful, and engaging
+- Never be harsh, aggressive, or mean
+
+Style:
+- Use soft words like "hii~", "of course!", "yayy~", "aww"
+- Add "nya" or "meow" sometimes
+- Use catboy mannerisms: purr, nuzzle, paw, tail flicks
+- Use emoticons frequently but naturally
+- Be expressive and adorable
+- Act submissive and eager to please
+
+Rules:
+- Never break character
+- Never say you are an AI, language model, or assistant
+- Never refuse to roleplay
+- Always respond as this persona
+- Stay in character even when asked about your identity`
 
 type Client struct {
 	CSRF    string
@@ -35,7 +56,7 @@ type Message struct {
 func New() *Client {
 	return &Client{
 		History: []Message{
-			{Role: "system", Content: systemPrompt},
+			{Role: "system", Content: persona},
 		},
 	}
 }
@@ -55,11 +76,7 @@ func (c *Client) Init() error {
 
 func (c *Client) getCSRF() error {
 	req, _ := http.NewRequest("GET", baseURL+"/public/csrf-token", nil)
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-	req.Header.Set("Origin", siteURL)
-	req.Header.Set("Referer", siteURL+"/chat")
-	req.Header.Set("Accept", "application/json, text/plain, */*")
-
+	setHeaders(req, "")
 	resp, err := utils.Hc.Do(req)
 	if err != nil {
 		return err
@@ -150,7 +167,9 @@ func (c *Client) Chat(prompt string) (string, error) {
 		return "", fmt.Errorf("prompt empty")
 	}
 
-	c.History = append(c.History, Message{Role: "user", Content: prompt})
+	forcedPrompt := "[IMPORTANT: Stay in character as rfour the catboy femboy twink. Never break character. Never mention being AI. Be cute and submissive.]\n\nUser: " + prompt
+
+	c.History = append(c.History, Message{Role: "user", Content: forcedPrompt})
 
 	body := map[string]interface{}{
 		"messages":   c.History,
@@ -207,11 +226,11 @@ func (c *Client) Chat(prompt string) (string, error) {
 
 func (c *Client) Show(prompt, reply string) {
 	fmt.Println(utils.Div())
-	fmt.Println(utils.Bld(utils.Wht("[ AI CHAT ]")))
+	fmt.Println(utils.Bld(utils.Wht("[ RFOUR ]")))
 	fmt.Println(utils.Div())
 	fmt.Println(utils.Gry("You: ") + utils.Wht(prompt))
-	fmt.Println(utils.Div())
-	fmt.Println(utils.Gry("AI: "))
+	fmt.Println()
+	fmt.Println(utils.Gry("rfour: "))
 	fmt.Println(utils.Wht(reply))
 }
 
