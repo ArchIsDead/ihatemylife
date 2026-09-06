@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"s/utils"
 )
@@ -72,6 +73,7 @@ type Client struct {
 	Session string
 	ModelID string
 	History []Message
+	client  *http.Client
 }
 
 type Message struct {
@@ -84,6 +86,7 @@ func New() *Client {
 		History: []Message{
 			{Role: "system", Content: persona},
 		},
+		client: &http.Client{Timeout: 30 * time.Second},
 	}
 }
 
@@ -103,7 +106,7 @@ func (c *Client) Init() error {
 func (c *Client) getCSRF() error {
 	req, _ := http.NewRequest("GET", baseURL+"/public/csrf-token", nil)
 	setHeaders(req, "")
-	resp, err := utils.Hc.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -124,7 +127,7 @@ func (c *Client) getCSRF() error {
 func (c *Client) ensureAgreement() error {
 	req, _ := http.NewRequest("GET", baseURL+"/public/ai/chat/agreement", nil)
 	setHeaders(req, c.Cookie)
-	resp, err := utils.Hc.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -153,7 +156,7 @@ func (c *Client) ensureAgreement() error {
 	req2.Header.Set("X-CSRF-Token", c.CSRF)
 	setHeaders(req2, c.Cookie)
 
-	resp2, err := utils.Hc.Do(req2)
+	resp2, err := c.client.Do(req2)
 	if err != nil {
 		return err
 	}
@@ -168,7 +171,7 @@ func (c *Client) ensureAgreement() error {
 func (c *Client) getModels() error {
 	req, _ := http.NewRequest("GET", baseURL+"/public/ai/models", nil)
 	setHeaders(req, c.Cookie)
-	resp, err := utils.Hc.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -211,7 +214,7 @@ func (c *Client) Chat(prompt string) (string, error) {
 	req.Header.Set("X-CSRF-Token", c.CSRF)
 	setHeaders(req, c.Cookie)
 
-	resp, err := utils.Hc.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -223,6 +226,9 @@ func (c *Client) Chat(prompt string) (string, error) {
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
+			if err == io.EOF {
+				break
+			}
 			break
 		}
 		line = strings.TrimSpace(line)
@@ -230,7 +236,7 @@ func (c *Client) Chat(prompt string) (string, error) {
 			continue
 		}
 		raw := strings.TrimSpace(strings.TrimPrefix(line, "data:"))
-		if raw == "" {
+		if raw == "" || raw == "[DONE]" {
 			continue
 		}
 		var data map[string]interface{}
@@ -245,7 +251,10 @@ func (c *Client) Chat(prompt string) (string, error) {
 		}
 	}
 
-	result := reply.String()
+	result := strings.TrimSpace(reply.String())
+	if result == "" {
+		return "", fmt.Errorf("empty response")
+	}
 	c.History = append(c.History, Message{Role: "assistant", Content: result})
 	return result, nil
 }
@@ -255,6 +264,7 @@ func setHeaders(req *http.Request, cookie string) {
 	req.Header.Set("Origin", siteURL)
 	req.Header.Set("Referer", siteURL+"/chat")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
 	if cookie != "" {
 		req.Header.Set("Cookie", cookie)
 	}
@@ -267,5 +277,3 @@ func str(x interface{}) string {
 	s, _ := x.(string)
 	return s
 }
-
-var _ = io.EOF
