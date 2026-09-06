@@ -20,13 +20,13 @@ var banner = `
 `
 
 func main() {
-	utils.B(banner)
-	utils.S("s\n")
+	utils.ShowBanner(banner)
+	utils.Sub("s\n")
 	r := bufio.NewReader(os.Stdin)
 	for {
-		utils.M()
-		utils.Up()
-		fmt.Print(utils.P("\n> "))
+		utils.Menu()
+		utils.ShowUp()
+		fmt.Print(utils.Prompt("\n> "))
 		x, _ := r.ReadString('\n')
 		x = strings.TrimSpace(x)
 		switch x {
@@ -59,7 +59,7 @@ func main() {
 		case "14":
 			commands.PV(r)
 		case "0", "exit", "quit":
-			utils.E("Exit.")
+			utils.Err("Exit.")
 			os.Exit(0)
 		}
 	}
