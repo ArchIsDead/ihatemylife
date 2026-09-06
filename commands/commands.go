@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"s/ai"
 	"s/dapo"
 	"s/decoder"
 	"s/encoder"
@@ -442,121 +441,121 @@ func PR(r *bufio.Reader) {
 	back(r)
 }
 
-func AI(r *bufio.Reader) {
-	client := ai.New()
-	utils.Err("Initializing rfour...")
-	if err := client.Init(); err != nil {
-		utils.Err("Error: " + err.Error())
-		back(r)
-		return
-	}
-
-	fmt.Println(utils.Div())
-	fmt.Println(utils.Bld(utils.Wht("[ RFOUR ]")))
-	fmt.Println(utils.Gry("Type 'exit' to leave. Type '.' on a line by itself to send multi-line message."))
-	fmt.Println(utils.Div())
-
-	for {
-		fmt.Print(utils.Gry("You: "))
-		var lines []string
-
-		for {
-			line, _ := r.ReadString('\n')
-			line = strings.TrimRight(line, "\n")
-			line = strings.TrimRight(line, "\r")
-
-			if line == "." {
-				break
-			}
-			if line == "exit" || line == "quit" || line == "0" {
-				back(r)
-				return
-			}
-			lines = append(lines, line)
-			if line == "" {
-				break
-			}
-		}
-
-		prompt := strings.Join(lines, "\n")
-		prompt = strings.TrimSpace(prompt)
-		if prompt == "" {
-			continue
-		}
-
-		fmt.Println(utils.Gry("rfour: "))
-		reply, err := client.Chat(prompt)
-		if err != nil {
-			utils.Err("Error: " + err.Error())
-			continue
-		}
-		fmt.Println(utils.Wht(reply))
-		fmt.Println()
-	}
-}
-
 func WA(r *bufio.Reader) {
 	client := &web2apk.Client{}
 
 	fmt.Println(utils.Div())
 	fmt.Println(utils.Bld(utils.Wht("[ WEB2APK ]")))
 	fmt.Println(utils.Div())
-	fmt.Println(utils.Gry("1. Health Check"))
-	fmt.Println(utils.Gry("2. Build APK"))
-	fmt.Println(utils.Gry("3. Scrape HTML"))
+	fmt.Println(utils.Gry("Example:"))
+	fmt.Println(utils.Gry("  App Name: MyApp"))
+	fmt.Println(utils.Gry("  Package: com.myapp.dev"))
+	fmt.Println(utils.Gry("  URL: https://example.com"))
+	fmt.Println(utils.Gry("  Version: 1.0 / 1"))
+	fmt.Println(utils.Gry("  Orientation: portrait"))
+	fmt.Println(utils.Gry("  Splash Type: image"))
+	fmt.Println(utils.Gry("  Icon: /sdcard/icon.png or https://example.com/icon.png"))
+	fmt.Println(utils.Gry("  Splash: /sdcard/splash.png or https://example.com/splash.png"))
+	fmt.Println(utils.Gry("  Permission Preset: 1-6, 7 manual, empty for none"))
 	fmt.Println(utils.Div())
 
-	opt := utils.Ask(r, "Option: ")
+	var req web2apk.BuildRequest
 
-	switch opt {
-	case "1":
-		res, err := client.Health()
-		if err != nil {
-			utils.Err("Error: " + err.Error())
-		} else {
-			utils.PrintJSON(res)
-		}
-	case "2":
-		var req web2apk.BuildRequest
-		req.AppName = utils.Ask(r, "App Name: ")
-		req.PackageName = utils.Ask(r, "Package Name: ")
-		req.URL = utils.Ask(r, "URL: ")
-		req.VersionName = utils.Ask(r, "Version Name [1.0]: ")
-		if req.VersionName == "" {
-			req.VersionName = "1.0"
-		}
-		req.VersionCode = utils.Ask(r, "Version Code [1]: ")
-		if req.VersionCode == "" {
-			req.VersionCode = "1"
-		}
-		ori := utils.Ask(r, "Orientation (auto/portrait/landscape): ")
-		if ori == "" {
-			ori = "auto"
-		}
-		req.Orientation = ori
-
-		req.Perms = []string{
-			"android.permission.INTERNET",
-			"android.permission.ACCESS_NETWORK_STATE",
-			"android.permission.ACCESS_WIFI_STATE",
-			"android.permission.VIBRATE",
-			"android.permission.WAKE_LOCK",
-		}
-
-		res, err := client.Build(req)
-		if err != nil {
-			utils.Err("Error: " + err.Error())
-		} else {
-			res.Show()
-		}
-	case "3":
-		u := utils.Ask(r, "URL: ")
-		res, err := client.ScrapeHTML(u)
-		if err != nil {
-			utils.Err("Error: " + err.Error())
-		} else {
-			utils.PrintJSON(res)
-		}
+	req.AppName = utils.Ask(r, "App Name: ")
+	if req.AppName == "" {
+		utils.Err("App Name required")
+		back(r)
+		return
 	}
+
+	req.PackageName = utils.Ask(r, "Package Name: ")
+	if req.PackageName == "" {
+		utils.Err("Package Name required")
+		back(r)
+		return
+	}
+
+	req.URL = utils.Ask(r, "URL: ")
+
+	req.VersionName = utils.Ask(r, "Version Name [1.0]: ")
+	if req.VersionName == "" {
+		req.VersionName = "1.0"
+	}
+
+	req.VersionCode = utils.Ask(r, "Version Code [1]: ")
+	if req.VersionCode == "" {
+		req.VersionCode = "1"
+	}
+
+	ori := utils.Ask(r, "Orientation (auto/portrait/landscape) [auto]: ")
+	if ori == "" {
+		ori = "auto"
+	}
+	req.Orientation = ori
+
+	st := utils.Ask(r, "Splash Type (image/html/video) [image]: ")
+	if st == "" {
+		st = "image"
+	}
+	req.SplashType = st
+
+	req.IconPath = utils.Ask(r, "Icon Path or URL (empty for default): ")
+
+	if st == "image" {
+		req.SplashPath = utils.Ask(r, "Splash Image Path or URL (empty for default): ")
+	} else if st == "html" {
+		req.SplashHTML = utils.Ask(r, "Splash HTML Path or URL: ")
+	} else if st == "video" {
+		req.SplashVideo = utils.Ask(r, "Splash Video Path or URL: ")
+	}
+
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("Permission Presets:"))
+	for k, v := range web2apk.PermissionPresets {
+		fmt.Println(utils.Gry("  " + k + " - " + v.Name))
+	}
+	fmt.Println(utils.Gry("  7 - Manual"))
+	fmt.Println(utils.Gry("  empty - None"))
+	fmt.Println(utils.Div())
+
+	pc := utils.Ask(r, "Preset (1-7, empty for none): ")
+
+	if preset, ok := web2apk.PermissionPresets[pc]; ok {
+		req.Perms = preset.Perms
+	} else if pc == "7" {
+		for _, p := range web2apk.Permissions {
+			safe := "Safe"
+			if !p.Safe {
+				safe = "Sensitive"
+			}
+			fmt.Println(utils.Gry(fmt.Sprintf("  [%s] %s - %s (%s)", p.ID, p.Name, p.Desc, safe)))
+		}
+		input := utils.Ask(r, "Permission IDs (comma separated): ")
+		ids := strings.Split(input, ",")
+		var chosen []string
+		for _, id := range ids {
+			id = strings.TrimSpace(id)
+			for _, p := range web2apk.Permissions {
+				if p.ID == id {
+					chosen = append(chosen, p.Name)
+				}
+			}
+		}
+		req.Perms = chosen
+	} else {
+		req.Perms = nil
+	}
+
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("Building... Please wait"))
+	fmt.Println(utils.Div())
+
+	res, err := client.Build(req)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+	res.Show()
 	back(r)
 }
