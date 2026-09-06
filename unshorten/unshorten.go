@@ -1,6 +1,8 @@
 package unshorten
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -33,8 +35,8 @@ func Do(u string) (string, error) {
 	token := m[1]
 
 	form := url.Values{
-		"short-url":            {u},
-		"csrfmiddlewaretoken": {token},
+		"short-url":             {u},
+		"csrfmiddlewaretoken":   {token},
 	}
 
 	req2, _ := http.NewRequest("POST", "https://unshorten.it/main/get_long_url", strings.NewReader(form.Encode()))
