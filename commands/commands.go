@@ -7,13 +7,20 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"s/dapo"
+	"s/decoder"
+	"s/encoder"
 	"s/googlesearch"
+	"s/hash"
 	"s/ipinfo"
 	"s/kodepos"
+	"s/music"
 	"s/nikparser"
 	"s/nsfw"
+	"s/preset"
+	"s/sflbypass"
 	"s/shortener"
 	"s/simpkb"
 	"s/tracemoe"
@@ -320,5 +327,131 @@ func SH(r *bufio.Reader) {
 		return
 	}
 	res.Show()
+	back(r)
+}
+
+func SF(r *bufio.Reader) {
+	u := utils.Ask(r, "Safelink URL: ")
+	res := sflbypass.Do(u)
+	res.Show()
+	back(r)
+}
+
+func HA(r *bufio.Reader) {
+	input := utils.Ask(r, "Text: ")
+	res := hash.Do(input)
+	res.Show()
+	back(r)
+}
+
+func EN(r *bufio.Reader) {
+	input := utils.Ask(r, "Text: ")
+	res := encoder.Do(input)
+	res.Show()
+	back(r)
+}
+
+func DE(r *bufio.Reader) {
+	input := utils.Ask(r, "Text: ")
+	res := decoder.Do(input)
+	res.Show()
+	back(r)
+}
+
+func PR(r *bufio.Reader) {
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Bld(utils.Wht("[ PRESETS ]")))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("1. Add Banner"))
+	fmt.Println(utils.Gry("2. Select Banner"))
+	fmt.Println(utils.Gry("3. List Banners"))
+	fmt.Println(utils.Gry("4. Remove Banner"))
+	fmt.Println(utils.Gry("5. Add Music"))
+	fmt.Println(utils.Gry("6. Select Music"))
+	fmt.Println(utils.Gry("7. List Music"))
+	fmt.Println(utils.Gry("8. Remove Music"))
+	fmt.Println(utils.Gry("9. Toggle Music"))
+	fmt.Println(utils.Div())
+
+	opt := utils.Ask(r, "Option: ")
+
+	switch opt {
+	case "1":
+		name := utils.Ask(r, "Preset Name: ")
+		text := utils.Ask(r, "Banner Text or URL: ")
+		if strings.HasPrefix(text, "http://") || strings.HasPrefix(text, "https://") {
+			bd, err := utils.F(text, nil)
+			if err != nil {
+				utils.Err("Error: " + err.Error())
+				back(r)
+				return
+			}
+			text = string(bd)
+		}
+		if err := preset.AddBanner(name, text); err != nil {
+			utils.Err(err.Error())
+		} else {
+			utils.Err("Added")
+		}
+	case "2":
+		name := utils.Ask(r, "Preset Name: ")
+		if err := preset.SelectBanner(name); err != nil {
+			utils.Err(err.Error())
+		} else {
+			utils.Err("Selected")
+		}
+	case "3":
+		for i, b := range preset.ListBanners() {
+			fmt.Println(utils.Gry(fmt.Sprintf("[%d] %s", i+1, b.Name)))
+		}
+	case "4":
+		name := utils.Ask(r, "Preset Name: ")
+		if err := preset.RemoveBanner(name); err != nil {
+			utils.Err(err.Error())
+		} else {
+			utils.Err("Removed")
+		}
+	case "5":
+		name := utils.Ask(r, "Preset Name: ")
+		path := utils.Ask(r, "File Path or URL: ")
+		if err := preset.AddMusic(name, path); err != nil {
+			utils.Err(err.Error())
+		} else {
+			utils.Err("Added")
+		}
+	case "6":
+		name := utils.Ask(r, "Preset Name: ")
+		if err := preset.SelectMusic(name); err != nil {
+			utils.Err(err.Error())
+		} else {
+			if path, ok := preset.GetSelectedMusic(); ok {
+				music.Play(path)
+			}
+			utils.Err("Selected")
+		}
+	case "7":
+		for i, m := range preset.ListMusics() {
+			fmt.Println(utils.Gry(fmt.Sprintf("[%d] %s - %s", i+1, m.Name, m.Path)))
+		}
+	case "8":
+		name := utils.Ask(r, "Preset Name: ")
+		if err := preset.RemoveMusic(name); err != nil {
+			utils.Err(err.Error())
+		} else {
+			music.Stop()
+			utils.Err("Removed")
+		}
+	case "9":
+		on := preset.ToggleMusic()
+		if on {
+			if path, ok := preset.GetSelectedMusic(); ok {
+				music.Play(path)
+			}
+			utils.Err("Music ON")
+		} else {
+			music.Stop()
+			utils.Err("Music OFF")
+		}
+	}
 	back(r)
 }
