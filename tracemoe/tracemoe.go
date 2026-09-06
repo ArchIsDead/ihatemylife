@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 
 	"s/utils"
 )
@@ -19,29 +20,40 @@ type Result struct {
 }
 
 type Item struct {
-	Title    string
-	Episode  int
-	Similarity float64
-	Video    string
-	Image    string
-	Anilist  int
+	Title       string
+	Episode     int
+	Similarity  float64
+	Video       string
+	Image       string
+	Anilist     int
 	MyAnimeList int
 }
 
-func Search(path string) (*Result, error) {
-	if path == "" {
-		return nil, errors.New("image path required")
+func Search(input string) (*Result, error) {
+	if input == "" {
+		return nil, errors.New("image path or url required")
 	}
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
 
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
 	part, _ := writer.CreateFormFile("image", "image.jpg")
-	io.Copy(part, file)
+
+	if strings.HasPrefix(input, "http://") || strings.HasPrefix(input, "https://") {
+		resp, err := utils.Hc.Get(input)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+		io.Copy(part, resp.Body)
+	} else {
+		file, err := os.Open(input)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		io.Copy(part, file)
+	}
+
 	writer.Close()
 
 	req, _ := http.NewRequest("POST", "https://api.trace.moe/search", &buf)
@@ -65,16 +77,15 @@ func Search(path string) (*Result, error) {
 
 	for _, d := range data {
 		dd, _ := d.(map[string]interface{})
-		item := Item{
-			Title:     str(dd["filename"]),
-			Episode:   int(num(dd["episode"])),
-			Similarity: num(dd["similarity"]),
-			Video:     str(dd["video"]),
-			Image:     str(dd["image"]),
-			Anilist:   int(num(dd["anilist"])),
+		r.Data = append(r.Data, Item{
+			Title:       str(dd["filename"]),
+			Episode:     int(num(dd["episode"])),
+			Similarity:  num(dd["similarity"]),
+			Video:       str(dd["video"]),
+			Image:       str(dd["image"]),
+			Anilist:     int(num(dd["anilist"])),
 			MyAnimeList: int(num(dd["mal_id"])),
-		}
-		r.Data = append(r.Data, item)
+		})
 	}
 
 	return r, nil
