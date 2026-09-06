@@ -14,7 +14,7 @@ func Menu() {
 	fmt.Println(Div())
 	fmt.Println(Bld(Wht("[ MENU ]")))
 	fmt.Println(Div())
-	fmt.Println(Gry("[01]") + Wht(" NUPTK Search"))
+	fmt.Println(Gry("[01]") + Wht(" Check PTK"))
 	fmt.Println(Gry("[02]") + Wht(" DAPO Progress"))
 	fmt.Println(Gry("[03]") + Wht(" Username Scan"))
 	fmt.Println(Gry("[04]") + Wht(" Search School"))
@@ -27,6 +27,8 @@ func Menu() {
 	fmt.Println(Gry("[11]") + Wht(" Trace Moe"))
 	fmt.Println(Gry("[12]") + Wht(" NSFW Check"))
 	fmt.Println(Gry("[13]") + Wht(" Google Search"))
+	fmt.Println(Gry("[14]") + Wht(" URL Unshortener"))
+	fmt.Println(Gry("[15]") + Wht(" URL Shortener"))
 	fmt.Println(Gry("[00]") + Red(" Exit"))
 	fmt.Println(Div())
 }
