@@ -35,23 +35,6 @@ func Dim(t string) string { return cl("\033[2m", t) }
 func Red(t string) string { return cl("\033[31m", t) }
 func Grn(t string) string { return cl("\033[32m", t) }
 
-func BW(t string) string {
-	if !Cc {
-		return t
-	}
-	q := []rune(t)
-	if len(q) == 0 {
-		return t
-	}
-	var o string
-	for i, r := range q {
-		z := float64(i) / float64(len(q)-1)
-		e := 232 + int(z*23)
-		o += fmt.Sprintf("\033[38;5;%dm%c", e, r)
-	}
-	return o + "\033[0m"
-}
-
 func GW(t string) string {
 	if !Cc {
 		return t
