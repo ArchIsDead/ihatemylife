@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 )
 
@@ -9,6 +10,12 @@ var Cc = true
 
 func init() {
 	if runtime.GOOS == "windows" {
+		Cc = false
+	}
+	if os.Getenv("TERM") == "dumb" {
+		Cc = false
+	}
+	if os.Getenv("NO_COLOR") != "" {
 		Cc = false
 	}
 }
