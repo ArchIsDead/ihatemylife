@@ -34,6 +34,7 @@ func Menu() {
 	fmt.Println(Gry("[18]") + Wht(" Decoder"))
 	fmt.Println(Gry("[19]") + Wht(" Presets"))
 	fmt.Println(Gry("[20]") + Wht(" AI Chat"))
+	fmt.Println(Gry("[21]") + Wht(" Web2APK"))
 	fmt.Println(Gry("[00]") + Red(" Exit"))
 	fmt.Println(Div())
 }
