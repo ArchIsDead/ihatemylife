@@ -154,8 +154,11 @@ func bypass(pageURL, html string, jar *Jar) (string, error) {
 	alias := aliasM[1]
 
 	origin := resolveURL(form, pageURL)
-	origin = origin[:strings.Index(origin, "/", 8)]
-
+	idx := strings.Index(origin[8:], "/")
+	if idx == -1 {
+ 	   idx = len(origin[8:])
+	}
+	origin = origin[:8+idx]
 	redirectURL := fmt.Sprintf("%s/redirect.php?ray_id=%s&alias=%s", origin, url.QueryEscape(rayID), url.QueryEscape(alias))
 
 	resp, _, err := fetch(redirectURL, jar)
