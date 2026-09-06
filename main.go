@@ -165,12 +165,6 @@ func showMain(r *bufio.Reader) {
 		case "20":
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
-			commands.AI(r)
-			clear()
-			utils.ShowBanner(preset.GetSelectedBanner())
-		case "21":
-			clear()
-			utils.ShowBanner(preset.GetSelectedBanner())
 			commands.WA(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
