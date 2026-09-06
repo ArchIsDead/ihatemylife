@@ -14,8 +14,10 @@ import (
 	"s/kodepos"
 	"s/nikparser"
 	"s/nsfw"
+	"s/shortener"
 	"s/simpkb"
 	"s/tracemoe"
+	"s/unshorten"
 	"s/utils"
 	"s/web2zip"
 	"s/whatsmyname"
@@ -265,7 +267,7 @@ func TM(r *bufio.Reader) {
 }
 
 func NS(r *bufio.Reader) {
-	p := utils.Ask(r, "Image Path: ")
+	p := utils.Ask(r, "Image Path or URL: ")
 	res, err := nsfw.Check(p)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
@@ -279,6 +281,34 @@ func NS(r *bufio.Reader) {
 func GS(r *bufio.Reader) {
 	q := utils.Ask(r, "Query: ")
 	res, err := googlesearch.Search(q)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+	res.Show()
+	back(r)
+}
+
+func UN(r *bufio.Reader) {
+	u := utils.Ask(r, "Short URL: ")
+	res, err := unshorten.Do(u)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Bld(utils.Wht("[ UNSHORTEN ]")))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("Long URL: ") + utils.Wht(res))
+	back(r)
+}
+
+func SH(r *bufio.Reader) {
+	u := utils.Ask(r, "URL: ")
+	alias := utils.Ask(r, "Alias (optional): ")
+	res, err := shortener.Do(u, alias)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
 		back(r)
