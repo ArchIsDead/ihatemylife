@@ -7,10 +7,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
 var cmd *exec.Cmd
+var volume = 100
 
 func getCacheDir() string {
 	home, _ := os.UserHomeDir()
@@ -20,8 +22,8 @@ func getCacheDir() string {
 }
 
 func getCachedPath(url string) string {
-	name := ""
 	parts := strings.Split(url, "/")
+	name := "music.mp3"
 	if len(parts) > 0 {
 		name = parts[len(parts)-1]
 	}
@@ -48,6 +50,20 @@ func download(url, dest string) error {
 	return err
 }
 
+func SetVolume(vol int) {
+	if vol < 0 {
+		vol = 0
+	}
+	if vol > 100 {
+		vol = 100
+	}
+	volume = vol
+}
+
+func GetVolume() int {
+	return volume
+}
+
 func Play(path string) {
 	Stop()
 
@@ -69,7 +85,10 @@ func Play(path string) {
 		return
 	}
 
-	cmd = exec.Command("mpv", "--no-video", "--loop=inf", actualPath)
+	volArg := strconv.Itoa(volume)
+	cmd = exec.Command("mpv", "--no-video", "--loop=inf", "--volume="+volArg, actualPath)
+	cmd.Stdout = nil
+	cmd.Stderr = nil
 	cmd.Start()
 }
 
