@@ -20,11 +20,12 @@ var banner = `
 `
 
 func main() {
-	fmt.Println(utils.B(banner))
-	fmt.Println(utils.S("s\n"))
+	utils.B(banner)
+	utils.S("s\n")
 	r := bufio.NewReader(os.Stdin)
-	utils.M()
 	for {
+		utils.M()
+		utils.Up()
 		fmt.Print(utils.P("\n> "))
 		x, _ := r.ReadString('\n')
 		x = strings.TrimSpace(x)
@@ -58,12 +59,8 @@ func main() {
 		case "14":
 			commands.PV(r)
 		case "0", "exit", "quit":
-			fmt.Println(utils.E("Exit."))
+			utils.E("Exit.")
 			os.Exit(0)
-		case "help", "menu":
-			utils.M()
-		default:
-			utils.M()
 		}
 	}
 }
