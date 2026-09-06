@@ -2,12 +2,12 @@ package utils
 
 import "fmt"
 
-func B(b string) { fmt.Println(GW(b)) }
-func T(t string) string { return B(W(t)) }
-func S(t string) { fmt.Println(G(t)) }
-func P(t string) string { return C(t) }
-func I(t string) string { return W(t) }
-func E(t string) { fmt.Println(R(t)) }
-func A(t string) string { return Y(t) }
-func J(t string) string { return BW(t) }
-func H() string { return G("────────────────────────────────────────") }
+func ShowBanner(b string) { fmt.Println(GW(b)) }
+func Title(t string) string { return Bld(Wht(t)) }
+func Sub(t string) { fmt.Println(Gry(t)) }
+func Prompt(t string) string { return Cyn(t) }
+func Input(t string) string { return Wht(t) }
+func Err(t string) { fmt.Println(Red(t)) }
+func Acc(t string) string { return Ylw(t) }
+func JSON(t string) string { return BW(t) }
+func Div() string { return Gry("────────────────────────────────────────") }
