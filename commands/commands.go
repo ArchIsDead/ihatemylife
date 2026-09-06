@@ -2,7 +2,7 @@ package commands
 
 import (
 	"bufio"
-	"fmt"
+	"encoding/json"
 	"net/http"
 	"os"
 	"os/exec"
