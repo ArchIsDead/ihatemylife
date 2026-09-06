@@ -124,6 +124,18 @@ func showMain(r *bufio.Reader) {
 			commands.GS(r)
 			clear()
 			utils.ShowBanner(banner)
+		case "14":
+			clear()
+			utils.ShowBanner(banner)
+			commands.UN(r)
+			clear()
+			utils.ShowBanner(banner)
+		case "15":
+			clear()
+			utils.ShowBanner(banner)
+			commands.SH(r)
+			clear()
+			utils.ShowBanner(banner)
 		case "0", "exit", "quit":
 			clear()
 			utils.Err("Exit.")
