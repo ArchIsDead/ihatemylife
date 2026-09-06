@@ -2,17 +2,17 @@ package commands
 
 import (
 	"bufio"
-	"encoding/json"
-	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
 
 	"s/dapo"
-	"s/downr"
+	"s/googlesearch"
+	"s/ipinfo"
 	"s/kodepos"
 	"s/nikparser"
+	"s/nsfw"
 	"s/simpkb"
 	"s/tracemoe"
 	"s/utils"
@@ -38,6 +38,18 @@ func back(r *bufio.Reader) {
 }
 
 func N(r *bufio.Reader) {
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Bld(utils.Wht("[ NUPTK SEARCH ]")))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("Examples:"))
+	fmt.Println(utils.Gry("  Keyword: Novy"))
+	fmt.Println(utils.Gry("  Province Code: 15 (Jambi)"))
+	fmt.Println(utils.Gry("  City Code: 1502 (Kab. Kerinci)"))
+	fmt.Println(utils.Gry("  Dapodik: 1 (connected) / 0 (not) / empty (all)"))
+	fmt.Println(utils.Gry("  Passport: 1 (registered) / 0 (not) / empty (all)"))
+	fmt.Println(utils.Gry("  Page: 1"))
+	fmt.Println(utils.Div())
+
 	k := utils.Ask(r, "Keyword: ")
 	p := utils.Ask(r, "Province Code: ")
 	kk := utils.Ask(r, "City Code: ")
@@ -55,6 +67,35 @@ func N(r *bufio.Reader) {
 }
 
 func D(r *bufio.Reader) {
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Bld(utils.Wht("[ DAPO PROGRESS ]")))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("Modes:"))
+	fmt.Println(utils.Gry("  province  - Province level progress"))
+	fmt.Println(utils.Gry("  regency   - Regency/City level progress"))
+	fmt.Println(utils.Gry("  district  - District level progress"))
+	fmt.Println(utils.Gry("  school    - School level progress"))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("Examples:"))
+	fmt.Println(utils.Gry("  Mode: province"))
+	fmt.Println(utils.Gry("  Level: SMP"))
+	fmt.Println(utils.Gry("  Status: Swasta"))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("  Mode: regency"))
+	fmt.Println(utils.Gry("  Province Code: 050000"))
+	fmt.Println(utils.Gry("  Level: SMP"))
+	fmt.Println(utils.Gry("  Status: Swasta"))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("  Mode: district"))
+	fmt.Println(utils.Gry("  Regency Code: 052000"))
+	fmt.Println(utils.Gry("  Level: SMP"))
+	fmt.Println(utils.Gry("  Status: Swasta"))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("  Mode: school"))
+	fmt.Println(utils.Gry("  District Code: 052001"))
+	fmt.Println(utils.Gry("  Level: SMP"))
+	fmt.Println(utils.Div())
+
 	m := utils.Ask(r, "Mode (province/regency/district/school): ")
 	switch m {
 	case "province":
@@ -150,29 +191,23 @@ func IS(r *bufio.Reader) {
 
 func IP(r *bufio.Reader) {
 	ip := utils.Ask(r, "IP Address: ")
-	resp, err := http.Get("http://ip-api.com/json/" + ip)
+	res, err := ipinfo.Lookup(ip)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
 		back(r)
 		return
 	}
-	defer resp.Body.Close()
-	var o map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&o)
-	utils.PrintJSON(o)
+	res.Show()
 	back(r)
 }
 
 func CIP() {
-	resp, err := http.Get("http://ip-api.com/json/")
+	res, err := ipinfo.Lookup("")
 	if err != nil {
 		utils.Err("Error: " + err.Error())
 		return
 	}
-	defer resp.Body.Close()
-	var o map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&o)
-	utils.PrintJSON(o)
+	res.Show()
 }
 
 func KP(r *bufio.Reader) {
@@ -217,7 +252,7 @@ func WZ(r *bufio.Reader) {
 }
 
 func TM(r *bufio.Reader) {
-	p := utils.Ask(r, "Image Path: ")
+	p := utils.Ask(r, "Image Path or URL: ")
 	res, err := tracemoe.Search(p)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
@@ -228,9 +263,21 @@ func TM(r *bufio.Reader) {
 	back(r)
 }
 
-func DR(r *bufio.Reader) {
-	u := utils.Ask(r, "URL: ")
-	res, err := downr.Download(u)
+func NS(r *bufio.Reader) {
+	p := utils.Ask(r, "Image Path: ")
+	res, err := nsfw.Check(p)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+	res.Show()
+	back(r)
+}
+
+func GS(r *bufio.Reader) {
+	q := utils.Ask(r, "Query: ")
+	res, err := googlesearch.Search(q)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
 		back(r)
