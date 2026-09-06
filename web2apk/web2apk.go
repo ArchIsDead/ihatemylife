@@ -58,6 +58,56 @@ var Permissions = []Permission{
 	{ID: "27", Name: "android.permission.USE_BIOMETRIC", Desc: "Biometric", Safe: false},
 }
 
+var PermissionPresets = map[string]struct {
+	Name  string
+	Perms []string
+}{
+	"1": {Name: "Standard / Recommended (Safe)", Perms: []string{
+		"android.permission.INTERNET",
+		"android.permission.ACCESS_NETWORK_STATE",
+		"android.permission.ACCESS_WIFI_STATE",
+		"android.permission.VIBRATE",
+		"android.permission.WAKE_LOCK",
+		"android.permission.POST_NOTIFICATIONS",
+	}},
+	"2": {Name: "All Permissions (27)", Perms: func() []string {
+		var all []string
+		for _, p := range Permissions {
+			all = append(all, p.Name)
+		}
+		return all
+	}()},
+	"3": {Name: "Media, Camera & Storage", Perms: []string{
+		"android.permission.INTERNET",
+		"android.permission.ACCESS_NETWORK_STATE",
+		"android.permission.CAMERA",
+		"android.permission.RECORD_AUDIO",
+		"android.permission.READ_EXTERNAL_STORAGE",
+		"android.permission.WRITE_EXTERNAL_STORAGE",
+		"android.permission.FLASHLIGHT",
+	}},
+	"4": {Name: "Location & Maps (GPS)", Perms: []string{
+		"android.permission.INTERNET",
+		"android.permission.ACCESS_NETWORK_STATE",
+		"android.permission.ACCESS_FINE_LOCATION",
+		"android.permission.ACCESS_COARSE_LOCATION",
+	}},
+	"5": {Name: "Social & Communication", Perms: []string{
+		"android.permission.INTERNET",
+		"android.permission.ACCESS_NETWORK_STATE",
+		"android.permission.READ_CONTACTS",
+		"android.permission.WRITE_CONTACTS",
+		"android.permission.READ_SMS",
+		"android.permission.SEND_SMS",
+		"android.permission.RECEIVE_SMS",
+		"android.permission.CALL_PHONE",
+	}},
+	"6": {Name: "Minimal (Internet Only)", Perms: []string{
+		"android.permission.INTERNET",
+		"android.permission.ACCESS_NETWORK_STATE",
+	}},
+}
+
 type BuildRequest struct {
 	AppName     string
 	PackageName string
@@ -67,9 +117,12 @@ type BuildRequest struct {
 	VersionName string
 	VersionCode string
 	Orientation string
+	SplashType  string
 	Perms       []string
 	IconPath    string
 	SplashPath  string
+	SplashHTML  string
+	SplashVideo string
 }
 
 type BuildResult struct {
@@ -91,37 +144,42 @@ func (c *Client) headers() map[string]string {
 	return h
 }
 
-func (c *Client) Health() (map[string]interface{}, error) {
-	req, _ := http.NewRequest("GET", baseURL+"/api/health", nil)
-	for k, v := range c.headers() {
-		req.Header.Set(k, v)
-	}
-	resp, err := utils.Hc.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	var out map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&out)
-	return out, nil
+func isURL(s string) bool {
+	return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
 }
 
-func (c *Client) ScrapeHTML(targetURL string) (map[string]interface{}, error) {
-	body := map[string]string{"url": targetURL}
-	b, _ := json.Marshal(body)
-	req, _ := http.NewRequest("POST", baseURL+"/api/scrape-html", bytes.NewReader(b))
-	req.Header.Set("Content-Type", "application/json")
-	for k, v := range c.headers() {
-		req.Header.Set(k, v)
+func addFile(w *multipart.Writer, field, pathOrURL, filename string) error {
+	if pathOrURL == "" {
+		return nil
 	}
-	resp, err := utils.Hc.Do(req)
+
+	var data io.Reader
+	var name string
+
+	if isURL(pathOrURL) {
+		resp, err := http.Get(pathOrURL)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		data = resp.Body
+		name = filename
+	} else {
+		file, err := os.Open(pathOrURL)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		data = file
+		name = filepath.Base(pathOrURL)
+	}
+
+	part, err := w.CreateFormFile(field, name)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	defer resp.Body.Close()
-	var out map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&out)
-	return out, nil
+	_, err = io.Copy(part, data)
+	return err
 }
 
 func (c *Client) Build(reqData BuildRequest) (*BuildResult, error) {
@@ -133,50 +191,27 @@ func (c *Client) Build(reqData BuildRequest) (*BuildResult, error) {
 	w.WriteField("versionName", reqData.VersionName)
 	w.WriteField("versionCode", reqData.VersionCode)
 	w.WriteField("orientation", reqData.Orientation)
+	w.WriteField("splashType", reqData.SplashType)
 
 	if reqData.URL != "" {
 		w.WriteField("url", reqData.URL)
 	}
 
-	if reqData.Perms != nil {
+	if reqData.Perms != nil && len(reqData.Perms) > 0 {
 		pb, _ := json.Marshal(reqData.Perms)
 		w.WriteField("permissions", string(pb))
 	}
 
-	if reqData.HTMLPath != "" {
-		file, err := os.Open(reqData.HTMLPath)
-		if err == nil {
-			part, _ := w.CreateFormFile("html", filepath.Base(reqData.HTMLPath))
-			io.Copy(part, file)
-			file.Close()
-		}
-	}
+	addFile(w, "html", reqData.HTMLPath, "index.html")
+	addFile(w, "zip", reqData.ZIPPath, "website.zip")
+	addFile(w, "icon", reqData.IconPath, "icon.png")
 
-	if reqData.ZIPPath != "" {
-		file, err := os.Open(reqData.ZIPPath)
-		if err == nil {
-			part, _ := w.CreateFormFile("zip", filepath.Base(reqData.ZIPPath))
-			io.Copy(part, file)
-			file.Close()
-		}
-	}
-
-	if reqData.IconPath != "" {
-		file, err := os.Open(reqData.IconPath)
-		if err == nil {
-			part, _ := w.CreateFormFile("icon", filepath.Base(reqData.IconPath))
-			io.Copy(part, file)
-			file.Close()
-		}
-	}
-
-	if reqData.SplashPath != "" {
-		file, err := os.Open(reqData.SplashPath)
-		if err == nil {
-			part, _ := w.CreateFormFile("splash", filepath.Base(reqData.SplashPath))
-			io.Copy(part, file)
-			file.Close()
-		}
+	if reqData.SplashType == "image" {
+		addFile(w, "splash", reqData.SplashPath, "splash.png")
+	} else if reqData.SplashType == "html" {
+		addFile(w, "splashHtml", reqData.SplashHTML, "splash.html")
+	} else if reqData.SplashType == "video" {
+		addFile(w, "splashVideo", reqData.SplashVideo, "splash.mp4")
 	}
 
 	w.Close()
@@ -187,7 +222,7 @@ func (c *Client) Build(reqData BuildRequest) (*BuildResult, error) {
 		req.Header.Set(k, v)
 	}
 
-	client := &http.Client{Timeout: 5 * time.Minute}
+	client := &http.Client{Timeout: 10 * time.Minute}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
