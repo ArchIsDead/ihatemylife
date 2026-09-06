@@ -201,7 +201,6 @@ func IP(r *bufio.Reader) {
 		return
 	}
 	res.Show()
-	back(r)
 }
 
 func CIP() {
@@ -307,8 +306,14 @@ func UN(r *bufio.Reader) {
 
 func SH(r *bufio.Reader) {
 	u := utils.Ask(r, "URL: ")
-	alias := utils.Ask(r, "Alias (optional): ")
-	res, err := shortener.Do(u, alias)
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("Service:"))
+	fmt.Println(utils.Gry("  all   - All services"))
+	fmt.Println(utils.Gry("  uto   - u.to"))
+	fmt.Println(utils.Gry("  walee - wal.ee"))
+	fmt.Println(utils.Div())
+	service := utils.Ask(r, "Service: ")
+	res, err := shortener.Do(u, service)
 	if err != nil {
 		utils.Err("Error: " + err.Error())
 		back(r)
