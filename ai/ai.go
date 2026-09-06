@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"s/utils"
 )
 
 const baseURL = "https://api.carpathian.ai"
