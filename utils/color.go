@@ -34,10 +34,6 @@ func Bld(t string) string { return cl("\033[1m", t) }
 func Dim(t string) string { return cl("\033[2m", t) }
 func Red(t string) string { return cl("\033[31m", t) }
 func Grn(t string) string { return cl("\033[32m", t) }
-func Ylw(t string) string { return cl("\033[33m", t) }
-func Blu(t string) string { return cl("\033[34m", t) }
-func Mgnt(t string) string { return cl("\033[35m", t) }
-func Cyn(t string) string { return cl("\033[36m", t) }
 
 func BW(t string) string {
 	if !Cc {
@@ -68,23 +64,6 @@ func GW(t string) string {
 	for i, r := range q {
 		z := float64(i) / float64(len(q)-1)
 		e := 240 + int(z*15)
-		o += fmt.Sprintf("\033[38;5;%dm%c", e, r)
-	}
-	return o + "\033[0m"
-}
-
-func WB(t string) string {
-	if !Cc {
-		return t
-	}
-	q := []rune(t)
-	if len(q) == 0 {
-		return t
-	}
-	var o string
-	for i, r := range q {
-		z := 1.0 - float64(i)/float64(len(q)-1)
-		e := 232 + int(z*23)
 		o += fmt.Sprintf("\033[38;5;%dm%c", e, r)
 	}
 	return o + "\033[0m"
