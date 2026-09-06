@@ -168,6 +168,12 @@ func showMain(r *bufio.Reader) {
 			commands.AI(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
+		case "21":
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+			commands.WA(r)
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
 		case "0", "exit", "quit":
 			clear()
 			music.Stop()
@@ -175,7 +181,7 @@ func showMain(r *bufio.Reader) {
 			os.Exit(0)
 		default:
 			clear()
-				utils.ShowBanner(preset.GetSelectedBanner())
+			utils.ShowBanner(preset.GetSelectedBanner())
 			utils.Err("Unknown command.")
 		}
 	}
