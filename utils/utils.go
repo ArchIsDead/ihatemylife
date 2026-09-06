@@ -53,41 +53,33 @@ func sh(cmd string) string {
 	return strings.TrimSpace(string(out))
 }
 
-func Up() {
+func UpStr() string {
 	raw := sh("cat /proc/uptime")
 	p := strings.Fields(raw)
 	if len(p) < 1 {
-		fmt.Println(G("Uptime: ") + W("0h 0m 0s"))
-		return
+		return "0h 0m 0s"
 	}
 	var sec float64
 	fmt.Sscanf(p[0], "%f", &sec)
 	h := int(sec) / 3600
 	m := (int(sec) % 3600) / 60
 	s := int(sec) % 60
-	fmt.Println(G("Uptime: ") + W(fmt.Sprintf("%dh %dm %ds", h, m, s)))
+	return fmt.Sprintf("%dh %dm %ds", h, m, s)
+}
+
+func Up() {
+	fmt.Println(G("Uptime: ") + W(UpStr()))
 	fmt.Println(H())
 }
 
 func Di() map[string]interface{} {
 	hn, _ := os.Hostname()
 	wd, _ := os.Getwd()
-	raw := sh("cat /proc/uptime")
-	p := strings.Fields(raw)
-	up := "0h 0m 0s"
-	if len(p) >= 1 {
-		var sec float64
-		fmt.Sscanf(p[0], "%f", &sec)
-		h := int(sec) / 3600
-		m := (int(sec) % 3600) / 60
-		s := int(sec) % 60
-		up = fmt.Sprintf("%dh %dm %ds", h, m, s)
-	}
 	return map[string]interface{}{
 		"hostname": hn,
 		"workdir":  wd,
 		"pid":      os.Getpid(),
-		"uptime":   up,
+		"uptime":   UpStr(),
 		"app_up":   time.Since(st).String(),
 	}
 }
