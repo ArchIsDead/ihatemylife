@@ -129,40 +129,34 @@ func showMain(r *bufio.Reader) {
 		case "14":
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
-			commands.UN(r)
+			commands.SH(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
 		case "15":
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
-			commands.SH(r)
+			commands.SF(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
 		case "16":
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
-			commands.SF(r)
+			commands.HA(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
 		case "17":
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
-			commands.HA(r)
+			commands.EN(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
 		case "18":
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
-			commands.EN(r)
-			clear()
-			utils.ShowBanner(preset.GetSelectedBanner())
-		case "19":
-			clear()
-			utils.ShowBanner(preset.GetSelectedBanner())
 			commands.DE(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
-		case "20":
+		case "19":
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
 			commands.PR(r)
