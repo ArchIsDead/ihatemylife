@@ -26,6 +26,7 @@ import (
 	"s/simpkb"
 	"s/tracemoe"
 	"s/utils"
+	"s/web2apk"
 	"s/web2zip"
 	"s/whatsmyname"
 )
@@ -443,7 +444,7 @@ func PR(r *bufio.Reader) {
 
 func AI(r *bufio.Reader) {
 	client := ai.New()
-	utils.Err("initializing the ai...")
+	utils.Err("Initializing rfour...")
 	if err := client.Init(); err != nil {
 		utils.Err("Error: " + err.Error())
 		back(r)
@@ -492,4 +493,70 @@ func AI(r *bufio.Reader) {
 		fmt.Println(utils.Wht(reply))
 		fmt.Println()
 	}
+}
+
+func WA(r *bufio.Reader) {
+	client := &web2apk.Client{}
+
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Bld(utils.Wht("[ WEB2APK ]")))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("1. Health Check"))
+	fmt.Println(utils.Gry("2. Build APK"))
+	fmt.Println(utils.Gry("3. Scrape HTML"))
+	fmt.Println(utils.Div())
+
+	opt := utils.Ask(r, "Option: ")
+
+	switch opt {
+	case "1":
+		res, err := client.Health()
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+		} else {
+			utils.PrintJSON(res)
+		}
+	case "2":
+		var req web2apk.BuildRequest
+		req.AppName = utils.Ask(r, "App Name: ")
+		req.PackageName = utils.Ask(r, "Package Name: ")
+		req.URL = utils.Ask(r, "URL: ")
+		req.VersionName = utils.Ask(r, "Version Name [1.0]: ")
+		if req.VersionName == "" {
+			req.VersionName = "1.0"
+		}
+		req.VersionCode = utils.Ask(r, "Version Code [1]: ")
+		if req.VersionCode == "" {
+			req.VersionCode = "1"
+		}
+		ori := utils.Ask(r, "Orientation (auto/portrait/landscape): ")
+		if ori == "" {
+			ori = "auto"
+		}
+		req.Orientation = ori
+
+		req.Perms = []string{
+			"android.permission.INTERNET",
+			"android.permission.ACCESS_NETWORK_STATE",
+			"android.permission.ACCESS_WIFI_STATE",
+			"android.permission.VIBRATE",
+			"android.permission.WAKE_LOCK",
+		}
+
+		res, err := client.Build(req)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+		} else {
+			res.Show()
+		}
+	case "3":
+		u := utils.Ask(r, "URL: ")
+		res, err := client.ScrapeHTML(u)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+		} else {
+			utils.PrintJSON(res)
+		}
+	}
+	back(r)
 }
