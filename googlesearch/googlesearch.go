@@ -3,7 +3,9 @@ package googlesearch
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 
 	"s/utils"
 )
@@ -37,8 +39,15 @@ func Search(q string) (*Result, error) {
 	}
 	defer resp.Body.Close()
 
+	body, _ := io.ReadAll(resp.Body)
+	rawStr := string(body)
+	rawStr = strings.TrimSpace(rawStr)
+	rawStr = strings.TrimPrefix(rawStr, "(,")
+	rawStr = strings.TrimSuffix(rawStr, ");")
+	rawStr = strings.TrimSpace(rawStr)
+
 	var raw map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
+	if err := json.Unmarshal([]byte(rawStr), &raw); err != nil {
 		return nil, err
 	}
 
