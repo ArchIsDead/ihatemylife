@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -26,14 +25,10 @@ func Menu() {
 	fmt.Println(Gry("[09]") + Wht(" NIK Parser"))
 	fmt.Println(Gry("[10]") + Wht(" Web2Zip"))
 	fmt.Println(Gry("[11]") + Wht(" Trace Moe"))
-	fmt.Println(Gry("[12]") + Wht(" Downloader"))
+	fmt.Println(Gry("[12]") + Wht(" NSFW Check"))
+	fmt.Println(Gry("[13]") + Wht(" Google Search"))
 	fmt.Println(Gry("[00]") + Red(" Exit"))
 	fmt.Println(Div())
-}
-
-func PrintJSON(v interface{}) {
-	b, _ := json.MarshalIndent(v, "", "  ")
-	fmt.Println(string(b))
 }
 
 func Ask(r *bufio.Reader, l string) string {
