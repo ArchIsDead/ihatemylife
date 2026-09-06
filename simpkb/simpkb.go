@@ -105,7 +105,7 @@ func Cari(keyword, prov, kab, paspor, dapodik, page string) (*Result, error) {
 
 func (r *Result) Show() {
 	fmt.Println(utils.Div())
-	fmt.Println(utils.Bld(utils.Wht("[ NUPTK SEARCH ]")))
+	fmt.Println(utils.Bld(utils.Wht("[ CHECK PTK ]")))
 	fmt.Println(utils.Gry(fmt.Sprintf("Keyword: %s", r.Keyword)))
 	fmt.Println(utils.Gry(fmt.Sprintf("Total: %d", r.Total)))
 	fmt.Println(utils.Div())
