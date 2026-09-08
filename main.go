@@ -27,6 +27,8 @@ func clear() {
 }
 
 func startMusic() {
+	vol := preset.GetVolume()
+	music.SetVolume(vol)
 	if path, ok := preset.GetSelectedMusic(); ok && path != "" {
 		music.Play(path)
 	}
@@ -135,7 +137,7 @@ func showMain(r *bufio.Reader) {
 		case "15":
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
-			commands.SF(r)
+			commands.BP(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
 		case "16":
@@ -163,6 +165,30 @@ func showMain(r *bufio.Reader) {
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
 		case "20":
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+			commands.SF(r)
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+		case "21":
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+			commands.TT(r)
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+		case "22":
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+			commands.PN(r)
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+		case "23":
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+			commands.FF(r)
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+		case "24":
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
 			commands.WA(r)
