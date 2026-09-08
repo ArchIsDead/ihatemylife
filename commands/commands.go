@@ -9,9 +9,11 @@ import (
 	"strconv"
 	"strings"
 
+	"s/bypass"
 	"s/dapo"
 	"s/decoder"
 	"s/encoder"
+	"s/ffstalk"
 	"s/googlesearch"
 	"s/hash"
 	"s/ipinfo"
@@ -19,11 +21,13 @@ import (
 	"s/music"
 	"s/nikparser"
 	"s/nsfw"
+	"s/pinstalk"
 	"s/preset"
-	"s/sflbypass"
 	"s/shortener"
 	"s/simpkb"
+	"s/songfinder"
 	"s/tracemoe"
+	"s/ttstalk"
 	"s/utils"
 	"s/web2apk"
 	"s/web2zip"
@@ -315,10 +319,33 @@ func SH(r *bufio.Reader) {
 	back(r)
 }
 
-func SF(r *bufio.Reader) {
-	u := utils.Ask(r, "Safelink URL: ")
-	res := sflbypass.Do(u)
-	res.Show()
+func BP(r *bufio.Reader) {
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Bld(utils.Wht("[ BYPASS LINK ]")))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("1. BypassTools (Ad-Link)"))
+	fmt.Println(utils.Gry("2. BypassLink (SFL)"))
+	fmt.Println(utils.Div())
+
+	method := utils.Ask(r, "Method [1]: ")
+	if method == "" {
+		method = "1"
+	}
+	u := utils.Ask(r, "URL: ")
+
+	res, err := bypass.Bypass(u, method)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+
+	mname := "BypassTools"
+	if method == "2" {
+		mname = "BypassLink"
+	}
+
+	bypass.Show(u, res, mname)
 	back(r)
 }
 
@@ -356,6 +383,7 @@ func PR(r *bufio.Reader) {
 	fmt.Println(utils.Gry("7. List Music"))
 	fmt.Println(utils.Gry("8. Remove Music"))
 	fmt.Println(utils.Gry("9. Toggle Music"))
+	fmt.Println(utils.Gry("10. Set Volume"))
 	fmt.Println(utils.Div())
 
 	opt := utils.Ask(r, "Option: ")
@@ -437,7 +465,66 @@ func PR(r *bufio.Reader) {
 			music.Stop()
 			utils.Err("Music OFF")
 		}
+	case "10":
+		v := utils.Ask(r, "Volume (0-100): ")
+		vi, _ := strconv.Atoi(v)
+		preset.SetVolume(vi)
+		music.SetVolume(vi)
+		if music.IsPlaying() {
+			if path, ok := preset.GetSelectedMusic(); ok {
+				music.Play(path)
+			}
+		}
+		utils.Err("Volume set to " + v)
 	}
+	back(r)
+}
+
+func SF(r *bufio.Reader) {
+	p := utils.Ask(r, "Audio Path or URL: ")
+	res, err := songfinder.Identify(p)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+	res.Show()
+	back(r)
+}
+
+func TT(r *bufio.Reader) {
+	u := utils.Ask(r, "Username: ")
+	res, err := ttstalk.Get(u)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+	res.Show()
+	back(r)
+}
+
+func PN(r *bufio.Reader) {
+	u := utils.Ask(r, "Username: ")
+	res, err := pinstalk.Get(u)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+	res.Show()
+	back(r)
+}
+
+func FF(r *bufio.Reader) {
+	u := utils.Ask(r, "UID: ")
+	res, err := ffstalk.Get(u)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+	res.Show()
 	back(r)
 }
 
@@ -451,63 +538,31 @@ func WA(r *bufio.Reader) {
 	fmt.Println(utils.Gry("  App Name: MyApp"))
 	fmt.Println(utils.Gry("  Package: com.myapp.dev"))
 	fmt.Println(utils.Gry("  URL: https://example.com"))
-	fmt.Println(utils.Gry("  Version: 1.0 / 1"))
-	fmt.Println(utils.Gry("  Orientation: portrait"))
-	fmt.Println(utils.Gry("  Splash Type: image"))
-	fmt.Println(utils.Gry("  Icon: /sdcard/icon.png or https://example.com/icon.png"))
-	fmt.Println(utils.Gry("  Splash: /sdcard/splash.png or https://example.com/splash.png"))
-	fmt.Println(utils.Gry("  Permission Preset: 1-6, 7 manual, empty for none"))
 	fmt.Println(utils.Div())
 
 	var req web2apk.BuildRequest
 
 	req.AppName = utils.Ask(r, "App Name: ")
-	if req.AppName == "" {
-		utils.Err("App Name required")
-		back(r)
-		return
-	}
-
 	req.PackageName = utils.Ask(r, "Package Name: ")
-	if req.PackageName == "" {
-		utils.Err("Package Name required")
-		back(r)
-		return
-	}
-
 	req.URL = utils.Ask(r, "URL: ")
-
 	req.VersionName = utils.Ask(r, "Version Name [1.0]: ")
 	if req.VersionName == "" {
 		req.VersionName = "1.0"
 	}
-
 	req.VersionCode = utils.Ask(r, "Version Code [1]: ")
 	if req.VersionCode == "" {
 		req.VersionCode = "1"
 	}
-
-	ori := utils.Ask(r, "Orientation (auto/portrait/landscape) [auto]: ")
-	if ori == "" {
-		ori = "auto"
+	req.Orientation = utils.Ask(r, "Orientation [auto]: ")
+	if req.Orientation == "" {
+		req.Orientation = "auto"
 	}
-	req.Orientation = ori
-
-	st := utils.Ask(r, "Splash Type (image/html/video) [image]: ")
-	if st == "" {
-		st = "image"
+	req.SplashType = utils.Ask(r, "Splash Type [image]: ")
+	if req.SplashType == "" {
+		req.SplashType = "image"
 	}
-	req.SplashType = st
-
-	req.IconPath = utils.Ask(r, "Icon Path or URL (empty for default): ")
-
-	if st == "image" {
-		req.SplashPath = utils.Ask(r, "Splash Image Path or URL (empty for default): ")
-	} else if st == "html" {
-		req.SplashHTML = utils.Ask(r, "Splash HTML Path or URL: ")
-	} else if st == "video" {
-		req.SplashVideo = utils.Ask(r, "Splash Video Path or URL: ")
-	}
+	req.IconPath = utils.Ask(r, "Icon Path or URL: ")
+	req.SplashPath = utils.Ask(r, "Splash Path or URL: ")
 
 	fmt.Println(utils.Div())
 	fmt.Println(utils.Gry("Permission Presets:"))
