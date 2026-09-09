@@ -536,7 +536,11 @@ func SP(r *bufio.Reader) {
 		back(r)
 		return
 	}
-	spamotp.Spam(target)
+
+	debugInput := utils.Ask(r, "Debug mode? (true/false) [false]: ")
+	debug := strings.ToLower(debugInput) == "true" || debugInput == "1" || debugInput == "yes"
+
+	spamotp.Spam(target, debug)
 	back(r)
 }
 
