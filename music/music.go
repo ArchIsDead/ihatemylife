@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var cmd *exec.Cmd
@@ -24,17 +25,15 @@ func getCacheDir() string {
 func getCachedPath(url string) string {
 	parts := strings.Split(url, "/")
 	name := "music.mp3"
-	if len(parts) > 0 {
+	if len(parts) > 0 && parts[len(parts)-1] != "" {
 		name = parts[len(parts)-1]
-	}
-	if name == "" {
-		name = "music.mp3"
 	}
 	return filepath.Join(getCacheDir(), name)
 }
 
 func download(url, dest string) error {
-	resp, err := http.Get(url)
+	client := &http.Client{Timeout: 60 * time.Second}
+	resp, err := client.Get(url)
 	if err != nil {
 		return err
 	}
