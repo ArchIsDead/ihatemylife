@@ -23,6 +23,7 @@ type Data struct {
 	Selected string   `json:"selected_banner"`
 	MusicOn  bool     `json:"music_on"`
 	MusicSel string   `json:"selected_music"`
+	Volume   int      `json:"volume"`
 }
 
 var dir string
@@ -46,6 +47,7 @@ func Load() *Data {
 		d.Selected = "default"
 		d.MusicOn = true
 		d.MusicSel = "1tap"
+		d.Volume = 100
 		Save(d)
 		return d
 	}
@@ -56,6 +58,12 @@ func Load() *Data {
 	}
 
 	json.Unmarshal(b, d)
+
+	if d.Volume == 0 {
+		d.Volume = 100
+		Save(d)
+	}
+
 	return d
 }
 
@@ -196,6 +204,27 @@ func CurrentMusicName() string {
 func MusicEnabled() bool {
 	d := Load()
 	return d.MusicOn
+}
+
+func SetVolume(v int) {
+	if v < 0 {
+		v = 0
+	}
+	if v > 100 {
+		v = 100
+	}
+	d := Load()
+	d.Volume = v
+	Save(d)
+}
+
+func GetVolume() int {
+	d := Load()
+	if d.Volume == 0 {
+		d.Volume = 100
+		Save(d)
+	}
+	return d.Volume
 }
 
 const defaultBanner = `
