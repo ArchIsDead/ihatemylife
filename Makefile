@@ -31,10 +31,12 @@ deps:
 
 run: deps
 	@clear
+	@git pull
 	@go run .
 
 build: deps
 	@clear
+	@git pull
 	@go build -o s .
 
 update: deps
@@ -64,6 +66,7 @@ fix:
 
 start: deps
 	@clear
+	@git pull
 	@./s
 
 stop:
