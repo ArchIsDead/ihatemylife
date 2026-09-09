@@ -39,6 +39,7 @@ func Menu() {
 	fmt.Println(Gry("[22]") + Wht(" Pinterest Stalk"))
 	fmt.Println(Gry("[23]") + Wht(" FF Stalk"))
 	fmt.Println(Gry("[24]") + Wht(" Web2APK"))
+	fmt.Println(Gry("[25]") + Wht(" OTP Spam"))
 	fmt.Println(Gry("[00]") + Red(" Exit"))
 	fmt.Println(Div())
 }
