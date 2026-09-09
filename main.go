@@ -201,6 +201,12 @@ func showMain(r *bufio.Reader) {
 			commands.WA(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
+		case "25":
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+			commands.SP(r)
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
 		case "0", "exit", "quit":
 			clear()
 			music.Stop()
