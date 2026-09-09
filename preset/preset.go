@@ -43,7 +43,7 @@ func Load() *Data {
 
 	if _, err := os.Stat(dataPath()); os.IsNotExist(err) {
 		d.Banners = append(d.Banners, Banner{Name: "default", Text: defaultBanner})
-		d.Musics = append(d.Musics, Music{Name: "1tap", Path: "https://files.catbox.moe/glyr3n.mp3"})
+		d.Musics = append(d.Musics, Music{Name: "1tap", Path: "https://suic1.de/1tap_spotdown.org.mp3"})
 		d.Selected = "default"
 		d.MusicOn = true
 		d.MusicSel = "1tap"
