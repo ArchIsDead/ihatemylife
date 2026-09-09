@@ -1,11 +1,33 @@
 .PHONY: run build update clean install fix start stop restart deps
 
 deps:
-	@echo "Checking dependencies..."
-	@command -v go >/dev/null 2>&1 || pkg install golang -y
-	@command -v git >/dev/null 2>&1 || pkg install git -y
-	@command -v mpv >/dev/null 2>&1 || pkg install mpv -y
-	@echo "Dependencies ready."
+	@echo ""
+	@echo "[*] Checking Go..."
+	@if command -v go >/dev/null 2>&1; then \
+		echo "    Go: INSTALLED"; \
+	else \
+		echo "    Go: NOT FOUND - Installing..."; \
+		pkg install golang -y; \
+	fi
+	@echo ""
+	@echo "[*] Checking Git..."
+	@if command -v git >/dev/null 2>&1; then \
+		echo "    Git: INSTALLED"; \
+	else \
+		echo "    Git: NOT FOUND - Installing..."; \
+		pkg install git -y; \
+	fi
+	@echo ""
+	@echo "[*] Checking MPV..."
+	@if command -v mpv >/dev/null 2>&1; then \
+		echo "    MPV: INSTALLED"; \
+	else \
+		echo "    MPV: NOT FOUND - Installing..."; \
+		pkg install mpv -y; \
+	fi
+	@echo ""
+	@echo "[*] All dependencies ready."
+	@echo ""
 
 run: deps
 	@clear
