@@ -26,6 +26,13 @@ func clear() {
 	}
 }
 
+func autoUpdate() {
+	cmd := exec.Command("git", "pull")
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	cmd.Run()
+}
+
 func startMusic() {
 	vol := preset.GetVolume()
 	music.SetVolume(vol)
@@ -208,6 +215,7 @@ func showMain(r *bufio.Reader) {
 }
 
 func main() {
+	autoUpdate()
 	startMusic()
 	r := bufio.NewReader(os.Stdin)
 	showMain(r)
