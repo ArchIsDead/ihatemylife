@@ -2,7 +2,6 @@ package spamotp
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
