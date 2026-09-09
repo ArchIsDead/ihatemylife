@@ -26,6 +26,7 @@ import (
 	"s/shortener"
 	"s/simpkb"
 	"s/songfinder"
+	"s/spamotp"
 	"s/tracemoe"
 	"s/ttstalk"
 	"s/utils"
@@ -525,6 +526,17 @@ func FF(r *bufio.Reader) {
 		return
 	}
 	res.Show()
+	back(r)
+}
+
+func SP(r *bufio.Reader) {
+	target := utils.Ask(r, "Target Number (08xx): ")
+	if target == "" {
+		utils.Err("Number required")
+		back(r)
+		return
+	}
+	spamotp.Spam(target)
 	back(r)
 }
 
