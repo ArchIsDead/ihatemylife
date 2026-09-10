@@ -204,7 +204,7 @@ func showMain(r *bufio.Reader) {
 		case "25":
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
-			commands.SP(r)
+			commands.AK(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
 		case "0", "exit", "quit":
