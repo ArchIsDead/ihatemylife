@@ -15,7 +15,7 @@ func Menu() {
 	fmt.Println(Div())
 	fmt.Println(Bld(Wht("[ MENU ]")))
 	fmt.Println(Div())
-	fmt.Println(Gry("[01]") + Wht(" Check PTK"))
+	fmt.Println(Gry("[01]") + Wht(" Check PTK & GTK"))
 	fmt.Println(Gry("[02]") + Wht(" DAPO Progress"))
 	fmt.Println(Gry("[03]") + Wht(" Username Scan"))
 	fmt.Println(Gry("[04]") + Wht(" Search School"))
@@ -39,7 +39,7 @@ func Menu() {
 	fmt.Println(Gry("[22]") + Wht(" Pinterest Stalk"))
 	fmt.Println(Gry("[23]") + Wht(" FF Stalk"))
 	fmt.Println(Gry("[24]") + Wht(" Web2APK"))
-	fmt.Println(Gry("[25]") + Wht(" OTP Spam"))
+	fmt.Println(Gry("[25]") + Wht(" Akinator"))
 	fmt.Println(Gry("[00]") + Red(" Exit"))
 	fmt.Println(Div())
 }
