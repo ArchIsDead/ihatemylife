@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 
 	"s/utils"
@@ -27,6 +28,111 @@ type Person struct {
 	Kecamatan string
 	Sekolah   string
 	Status    string
+}
+
+type ProvinceResult struct {
+	Total    int
+	Data     []Province
+}
+
+type Province struct {
+	Code string
+	Name string
+}
+
+type CityResult struct {
+	ProvinceCode string
+	ProvinceName string
+	Total        int
+	Data         []City
+}
+
+type City struct {
+	Code string
+	Name string
+}
+
+func fetchJSON(path string) (map[string]interface{}, error) {
+	bd, err := utils.F(baseURL+path, map[string]string{
+		"User-Agent":       "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36",
+		"Accept":           "application/json, text/javascript, */*; q=0.01",
+		"X-Requested-With": "XMLHttpRequest",
+		"Referer":          baseURL + "/akun/ptk",
+	})
+	if err != nil {
+		return nil, err
+	}
+	var o map[string]interface{}
+	if err := json.Unmarshal(bd, &o); err != nil {
+		return nil, err
+	}
+	return o, nil
+}
+
+func Provinsi() (*ProvinceResult, error) {
+	raw, err := fetchJSON("/asset/js/configs/propinsi.json?version=202309261116")
+	if err != nil {
+		return nil, err
+	}
+
+	r := &ProvinceResult{}
+
+	keys := make([]string, 0, len(raw))
+	for k := range raw {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		v, ok := raw[k].(string)
+		if !ok {
+			continue
+		}
+		r.Data = append(r.Data, Province{Code: k, Name: v})
+	}
+	r.Total = len(r.Data)
+
+	return r, nil
+}
+
+func Kota(provCode string) (*CityResult, error) {
+	raw, err := fetchJSON("/asset/js/configs/kota.json?version=202309261116")
+	if err != nil {
+		return nil, err
+	}
+
+	r := &CityResult{ProvinceCode: provCode}
+
+	if provCode == "" {
+		for _, v := range raw {
+			if m, ok := v.(map[string]interface{}); ok {
+				r.Total += len(m)
+			}
+		}
+		return r, nil
+	}
+
+	provData, ok := raw[provCode].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("province code not found")
+	}
+
+	keys := make([]string, 0, len(provData))
+	for k := range provData {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		v, ok := provData[k].(string)
+		if !ok {
+			continue
+		}
+		r.Data = append(r.Data, City{Code: k, Name: v})
+	}
+	r.Total = len(r.Data)
+
+	return r, nil
 }
 
 func Cari(keyword, prov, kab, paspor, dapodik, page string) (*Result, error) {
@@ -74,7 +180,7 @@ func Cari(keyword, prov, kab, paspor, dapodik, page string) (*Result, error) {
 		if content, ok := dd["content"].([]interface{}); ok {
 			for _, c := range content {
 				cc, _ := c.(map[string]interface{})
-				p := Person{
+				result.Data = append(result.Data, Person{
 					Nama:      str(cc["nama"]),
 					Nuptk:     str(cc["nuptk"]),
 					Provinsi:  str(cc["provinsi"]),
@@ -82,11 +188,10 @@ func Cari(keyword, prov, kab, paspor, dapodik, page string) (*Result, error) {
 					Kecamatan: str(cc["kecamatan"]),
 					Sekolah:   str(cc["sekolah"]),
 					Status:    str(cc["status"]),
-				}
-				result.Data = append(result.Data, p)
+				})
 			}
 		} else {
-			p := Person{
+			result.Data = append(result.Data, Person{
 				Nama:      str(dd["nama"]),
 				Nuptk:     str(dd["nuptk"]),
 				Provinsi:  str(dd["provinsi"]),
@@ -94,8 +199,7 @@ func Cari(keyword, prov, kab, paspor, dapodik, page string) (*Result, error) {
 				Kecamatan: str(dd["kecamatan"]),
 				Sekolah:   str(dd["sekolah"]),
 				Status:    str(dd["status"]),
-			}
-			result.Data = append(result.Data, p)
+			})
 		}
 	}
 
@@ -136,6 +240,31 @@ func (r *Result) Show() {
 			fmt.Println(utils.Gry("Status: ") + utils.Wht(p.Status))
 		}
 		fmt.Println()
+	}
+}
+
+func (r *ProvinceResult) Show() {
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Bld(utils.Wht("[ PROVINCES ]")))
+	fmt.Println(utils.Gry(fmt.Sprintf("Total: %d", r.Total)))
+	fmt.Println(utils.Div())
+
+	for _, p := range r.Data {
+		fmt.Println(utils.Gry(p.Code+" - ") + utils.Wht(p.Name))
+	}
+}
+
+func (r *CityResult) Show() {
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Bld(utils.Wht("[ CITIES ]")))
+	if r.ProvinceCode != "" {
+		fmt.Println(utils.Gry("Province Code: ") + utils.Wht(r.ProvinceCode))
+	}
+	fmt.Println(utils.Gry(fmt.Sprintf("Total: %d", r.Total)))
+	fmt.Println(utils.Div())
+
+	for _, c := range r.Data {
+		fmt.Println(utils.Gry(c.Code+" - ") + utils.Wht(c.Name))
 	}
 }
 
