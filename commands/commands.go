@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"s/akinator"
 	"s/bypass"
 	"s/dapo"
 	"s/decoder"
@@ -26,7 +27,6 @@ import (
 	"s/shortener"
 	"s/simpkb"
 	"s/songfinder"
-	"s/spamotp"
 	"s/tracemoe"
 	"s/ttstalk"
 	"s/utils"
@@ -54,30 +54,61 @@ func back(r *bufio.Reader) {
 
 func N(r *bufio.Reader) {
 	fmt.Println(utils.Div())
-	fmt.Println(utils.Bld(utils.Wht("[ CHECK PTK ]")))
+	fmt.Println(utils.Bld(utils.Wht("[ CHECK PTK & GTK ]")))
 	fmt.Println(utils.Div())
-	fmt.Println(utils.Gry("Examples:"))
-	fmt.Println(utils.Gry("  Keyword: Novy"))
-	fmt.Println(utils.Gry("  Province Code: 15 (Jambi)"))
-	fmt.Println(utils.Gry("  City Code: 1502 (Kab. Kerinci)"))
-	fmt.Println(utils.Gry("  Dapodik: 1 (connected) / 0 (not) / empty (all)"))
-	fmt.Println(utils.Gry("  Passport: 1 (registered) / 0 (not) / empty (all)"))
-	fmt.Println(utils.Gry("  Page: 1"))
+	fmt.Println(utils.Gry("1. Search PTK / GTK"))
+	fmt.Println(utils.Gry("2. List Provinces"))
+	fmt.Println(utils.Gry("3. List Cities (by Province)"))
 	fmt.Println(utils.Div())
 
-	k := utils.Ask(r, "Keyword: ")
-	p := utils.Ask(r, "Province Code: ")
-	kk := utils.Ask(r, "City Code: ")
-	dp := utils.Ask(r, "Dapodik 0/1/empty: ")
-	ps := utils.Ask(r, "Passport 0/1/empty: ")
-	pg := utils.Ask(r, "Page: ")
-	res, err := simpkb.Cari(k, p, kk, ps, dp, pg)
-	if err != nil {
-		utils.Err("Error: " + err.Error())
-		back(r)
-		return
+	opt := utils.Ask(r, "Option [1]: ")
+	if opt == "" {
+		opt = "1"
 	}
-	res.Show()
+
+	switch opt {
+	case "1":
+		fmt.Println(utils.Div())
+		fmt.Println(utils.Gry("Examples:"))
+		fmt.Println(utils.Gry("  Keyword: Novy"))
+		fmt.Println(utils.Gry("  Province Code: 15 (Jambi)"))
+		fmt.Println(utils.Gry("  City Code: 1505 (Kab. Kerinci)"))
+		fmt.Println(utils.Gry("  Dapodik: 1 (connected) / 0 (not) / empty (all)"))
+		fmt.Println(utils.Gry("  Passport: 1 (registered) / 0 (not) / empty (all)"))
+		fmt.Println(utils.Gry("  Page: 1"))
+		fmt.Println(utils.Div())
+
+		k := utils.Ask(r, "Keyword: ")
+		p := utils.Ask(r, "Province Code: ")
+		kk := utils.Ask(r, "City Code: ")
+		dp := utils.Ask(r, "Dapodik 0/1/empty: ")
+		ps := utils.Ask(r, "Passport 0/1/empty: ")
+		pg := utils.Ask(r, "Page: ")
+		res, err := simpkb.Cari(k, p, kk, ps, dp, pg)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+			back(r)
+			return
+		}
+		res.Show()
+	case "2":
+		res, err := simpkb.Provinsi()
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+			back(r)
+			return
+		}
+		res.Show()
+	case "3":
+		prov := utils.Ask(r, "Province Code: ")
+		res, err := simpkb.Kota(prov)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+			back(r)
+			return
+		}
+		res.Show()
+	}
 	back(r)
 }
 
@@ -529,21 +560,6 @@ func FF(r *bufio.Reader) {
 	back(r)
 }
 
-func SP(r *bufio.Reader) {
-	target := utils.Ask(r, "Target Number (08xx): ")
-	if target == "" {
-		utils.Err("Number required")
-		back(r)
-		return
-	}
-
-	debugInput := utils.Ask(r, "Debug mode? (true/false) [false]: ")
-	debug := strings.ToLower(debugInput) == "true" || debugInput == "1" || debugInput == "yes"
-
-	spamotp.Spam(target, debug)
-	back(r)
-}
-
 func WA(r *bufio.Reader) {
 	client := &web2apk.Client{}
 
@@ -628,5 +644,123 @@ func WA(r *bufio.Reader) {
 		return
 	}
 	res.Show()
+	back(r)
+}
+
+func AK(r *bufio.Reader) {
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Bld(utils.Wht("[ AKINATOR ]")))
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Gry("Theme:"))
+	fmt.Println(utils.Gry("  1. Characters (default)"))
+	fmt.Println(utils.Gry("  2. Animals"))
+	fmt.Println(utils.Gry("  3. Objects"))
+	fmt.Println(utils.Div())
+
+	themeOpt := utils.Ask(r, "Theme [1]: ")
+	theme := "characters"
+	switch themeOpt {
+	case "2":
+		theme = "animals"
+	case "3":
+		theme = "objects"
+	}
+
+	child := utils.Ask(r, "Child Mode? (true/false) [false]: ")
+	childMode := strings.ToLower(child) == "true"
+
+	session, err := akinator.Start(theme, childMode)
+	if err != nil {
+		utils.Err("Error: " + err.Error())
+		back(r)
+		return
+	}
+
+	fmt.Println(utils.Div())
+	fmt.Println(utils.Grn("Game started!"))
+	fmt.Println(utils.Div())
+
+	for {
+		if session.Question == "" {
+			break
+		}
+
+		fmt.Println(utils.Bld(utils.Wht(session.Question)))
+		fmt.Println(utils.Gry(fmt.Sprintf("Step: %d | Progression: %.1f%%", session.Step, session.Progression)))
+		fmt.Println(utils.Div())
+		fmt.Println(utils.Gry("  1. Yes"))
+		fmt.Println(utils.Gry("  2. No"))
+		fmt.Println(utils.Gry("  3. I Don't Know"))
+		fmt.Println(utils.Gry("  4. Probably"))
+		fmt.Println(utils.Gry("  5. Probably Not"))
+		fmt.Println(utils.Gry("  6. Back"))
+		fmt.Println(utils.Gry("  7. Exclude"))
+		fmt.Println(utils.Gry("  0. Quit"))
+		fmt.Println(utils.Div())
+
+		ans := utils.Ask(r, "> ")
+		ans = strings.TrimSpace(ans)
+
+		if ans == "0" || ans == "quit" || ans == "exit" {
+			break
+		}
+
+		var ansStr string
+		switch ans {
+		case "1":
+			ansStr = "yes"
+		case "2":
+			ansStr = "no"
+		case "3":
+			ansStr = "idk"
+		case "4":
+			ansStr = "probably"
+		case "5":
+			ansStr = "probably not"
+		case "6":
+			res, err := akinator.Back(session)
+			if err != nil {
+				utils.Err("Error: " + err.Error())
+				continue
+			}
+			session.Question = res.Question
+			continue
+		case "7":
+			res, err := akinator.Exclude(session)
+			if err != nil {
+				utils.Err("Error: " + err.Error())
+				continue
+			}
+			session.Question = res.Question
+			continue
+		default:
+			ansStr = ans
+		}
+
+		res, err := akinator.Answer(session, ansStr)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+			continue
+		}
+
+		if res.Won {
+			fmt.Println(utils.Div())
+			fmt.Println(utils.Bld(utils.Wht("[ AKINATOR GUESSED ]")))
+			fmt.Println(utils.Div())
+			fmt.Println(utils.Gry("Name: ") + utils.Wht(res.Name))
+			if res.Description != "" {
+				fmt.Println(utils.Gry("Description: ") + utils.Wht(res.Description))
+			}
+			if res.Photo != "" {
+				fmt.Println(utils.Gry("Photo: ") + utils.Wht(res.Photo))
+			}
+			if res.Pseudo != "" {
+				fmt.Println(utils.Gry("Pseudo: ") + utils.Wht(res.Pseudo))
+			}
+			break
+		}
+
+		session.Question = res.Question
+	}
 	back(r)
 }
