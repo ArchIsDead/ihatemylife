@@ -4,7 +4,7 @@ set -e
 
 echo "[*] Installing dependencies..."
 pkg update -y
-pkg install -y zsh git curl wget figlet toilet ncurses-utils nano
+pkg install -y zsh git curl wget figlet toilet ncurses-utils nano unzip
 
 echo "[*] Installing Oh My Zsh..."
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
@@ -21,6 +21,13 @@ chsh -s zsh
 
 echo "[*] Installing Powerlevel10k..."
 [ -d "$ZSH_CUSTOM/themes/powerlevel10k" ] || git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
+
+echo "[*] Disabling default MOTD..."
+mkdir -p "$PREFIX/etc"
+echo "" > "$PREFIX/etc/motd"
+
+echo "[*] Forcing zsh on shell start..."
+grep -q "exec zsh" "$HOME/.bashrc" 2>/dev/null || echo "exec zsh" >> "$HOME/.bashrc"
 
 mkdir -p "$HOME/.termux"
 
