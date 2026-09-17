@@ -33,6 +33,7 @@ import (
 	"s/web2apk"
 	"s/web2zip"
 	"s/whatsmyname"
+	"s/termuxtheme"
 )
 
 func clear() {
@@ -762,5 +763,10 @@ func AK(r *bufio.Reader) {
 
 		session.Question = res.Question
 	}
+	back(r)
+}
+
+func TX(r *bufio.Reader) {
+	termuxtheme.Menu(r)
 	back(r)
 }
