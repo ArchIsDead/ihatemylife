@@ -1,7 +1,7 @@
 export PATH="$HOME/.local/bin:$PATH"
 
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="powerlevel10k/powerlevel10k"
+ZSH_THEME=""
 
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 
@@ -9,6 +9,8 @@ source $ZSH/oh-my-zsh.sh
 
 export EDITOR=nano
 export VISUAL=nano
+
+PROMPT='%F{213}rfour%f %F{245}%~%f %F{213}>%f '
 
 alias ls='ls --color=auto'
 alias ll='ls -lah'
@@ -18,11 +20,11 @@ alias ...='cd ../..'
 alias theme='bash ~/.termux-theme/apply.sh'
 alias themes='ls ~/.termux-theme/themes'
 alias banner='bash ~/.termux-theme/banner.sh'
+alias font='bash ~/.termux-theme/font.sh'
 
 clear
 bash ~/.termux-theme/banner.sh show
 echo ""
 echo "  date    : $(date '+%A, %d %B %Y')"
-echo "  time    : $(date '+%H:%M:%S')"
 echo "  storage : $(df -h /data | awk 'NR==2 {print $3 " / " $2 " (" $5 " used)"}')"
 echo ""
