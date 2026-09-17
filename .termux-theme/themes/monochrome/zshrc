@@ -41,16 +41,12 @@ ram_used=$(free -m | awk '/Mem:/ {print $3}')
 ram_total=$(free -m | awk '/Mem:/ {print $2}')
 ram_pct=$((ram_used * 100 / ram_total))
 
-cpu_load=$(cat /proc/loadavg | awk '{print $1}')
-cpu_pct=$(awk -v l="$cpu_load" 'BEGIN {p = l * 100; if (p > 100) p = 100; printf "%d", p}')
-
 disk_pct=$(df -h /data | awk 'NR==2 {gsub("%",""); print $5}')
 
 clear
 bash ~/.termux-theme/banner.sh show
 echo ""
-echo "  date    : $(date '+%A, %d %B %Y')"
-echo "  storage : $(progress_bar $disk_pct)  $(df -h /data | awk 'NR==2 {print $3 " / " $2}')"
-echo "  ram     : $(progress_bar $ram_pct)  ${ram_used}M / ${ram_total}M"
-echo "  cpu     : $(progress_bar $cpu_pct)  load ${cpu_load}"
+echo "  date     : $(date '+%A, %d %B %Y')"
+echo "  storage  : $(progress_bar $disk_pct)  $(df -h /data | awk 'NR==2 {print $3 " / " $2}')"
+echo "  ram      : $(progress_bar $ram_pct)  ${ram_used}M / ${ram_total}M"
 echo ""
