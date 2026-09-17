@@ -112,6 +112,16 @@ func Banner(action, arg string) error {
 	return runScript("banner.sh", action)
 }
 
+func Font(action, arg string) error {
+	if err := ensureInstalled(); err != nil {
+		return err
+	}
+	if arg != "" {
+		return runScript("font.sh", action, arg)
+	}
+	return runScript("font.sh", action)
+}
+
 func Disable() error {
 	if err := ensureInstalled(); err != nil {
 		return err
@@ -133,6 +143,9 @@ bell-character = ignore
 
 	colorsFile := filepath.Join(termuxDir, "colors.properties")
 	os.Remove(colorsFile)
+
+	fontFile := filepath.Join(termuxDir, "font.ttf")
+	os.Remove(fontFile)
 
 	zshrc := filepath.Join(home, ".zshrc")
 	os.Remove(zshrc)
@@ -171,7 +184,8 @@ func Menu(r *bufio.Reader) {
 	fmt.Println(utils.Gry("3. List Themes"))
 	fmt.Println(utils.Gry("4. Banner Manager"))
 	fmt.Println(utils.Gry("5. Sync from repo"))
-	fmt.Println(utils.Gry("6. Disable Theme"))
+	fmt.Println(utils.Gry("6. Font Manager"))
+	fmt.Println(utils.Gry("7. Disable Theme"))
 	fmt.Println(utils.Div())
 
 	opt := utils.Ask(r, "Option: ")
@@ -226,6 +240,25 @@ func Menu(r *bufio.Reader) {
 		}
 		utils.Err("Synced from repo")
 	case "6":
+		fmt.Println(utils.Gry("1. Apply Font (URL or path)"))
+		fmt.Println(utils.Gry("2. Remove Font"))
+		a := utils.Ask(r, "Option: ")
+		switch a {
+		case "1":
+			u := utils.Ask(r, "Font URL or path: ")
+			if err := Font("apply", u); err != nil {
+				utils.Err("Error: " + err.Error())
+				return
+			}
+			utils.Err("Font applied")
+		case "2":
+			if err := Font("remove", ""); err != nil {
+				utils.Err("Error: " + err.Error())
+				return
+			}
+			utils.Err("Font removed")
+		}
+	case "7":
 		if err := Disable(); err != nil {
 			utils.Err("Error: " + err.Error())
 			return
