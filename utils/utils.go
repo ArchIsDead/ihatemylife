@@ -40,6 +40,7 @@ func Menu() {
 	fmt.Println(Gry("[23]") + Wht(" FF Stalk"))
 	fmt.Println(Gry("[24]") + Wht(" Web2APK"))
 	fmt.Println(Gry("[25]") + Wht(" Akinator"))
+	fmt.Println(Gry("[26]") + Wht(" Termux Theme"))
 	fmt.Println(Gry("[00]") + Red(" Exit"))
 	fmt.Println(Div())
 }
