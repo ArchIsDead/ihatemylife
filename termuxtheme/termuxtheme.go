@@ -112,6 +112,37 @@ func Banner(action, arg string) error {
 	return runScript("banner.sh", action)
 }
 
+func Disable() error {
+	if err := ensureInstalled(); err != nil {
+		return err
+	}
+
+	home, _ := os.UserHomeDir()
+	termuxDir := filepath.Join(home, ".termux")
+	os.MkdirAll(termuxDir, 0755)
+
+	propFile := filepath.Join(termuxDir, "termux.properties")
+	content := `use-black-ui = true
+extra-keys = [['ESC','/','-','HOME','UP','END','PGUP'],['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]
+terminal-margin-horizontal = 3
+terminal-margin-vertical = 3
+bell-character = ignore
+`
+
+	os.WriteFile(propFile, []byte(content), 0644)
+
+	colorsFile := filepath.Join(termuxDir, "colors.properties")
+	os.Remove(colorsFile)
+
+	zshrc := filepath.Join(home, ".zshrc")
+	os.Remove(zshrc)
+
+	cmd := exec.Command("termux-reload-settings")
+	cmd.Run()
+
+	return nil
+}
+
 func ListThemes() []string {
 	entries, err := os.ReadDir(filepath.Join(userDir(), "themes"))
 	if err != nil {
@@ -140,6 +171,7 @@ func Menu(r *bufio.Reader) {
 	fmt.Println(utils.Gry("3. List Themes"))
 	fmt.Println(utils.Gry("4. Banner Manager"))
 	fmt.Println(utils.Gry("5. Sync from repo"))
+	fmt.Println(utils.Gry("6. Disable Theme"))
 	fmt.Println(utils.Div())
 
 	opt := utils.Ask(r, "Option: ")
@@ -193,5 +225,11 @@ func Menu(r *bufio.Reader) {
 			return
 		}
 		utils.Err("Synced from repo")
+	case "6":
+		if err := Disable(); err != nil {
+			utils.Err("Error: " + err.Error())
+			return
+		}
+		utils.Err("Theme disabled")
 	}
 }
