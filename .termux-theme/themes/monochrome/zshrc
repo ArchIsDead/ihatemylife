@@ -10,7 +10,7 @@ source $ZSH/oh-my-zsh.sh
 export EDITOR=nano
 export VISUAL=nano
 
-PROMPT='%F{250}rfour%f %F{240}%~%f %F{250}>%f '
+PROMPT='%F{250}%~%f %F{240}>%f '
 
 alias ls='ls --color=auto'
 alias ll='ls -lah'
@@ -22,9 +22,35 @@ alias themes='ls ~/.termux-theme/themes'
 alias banner='bash ~/.termux-theme/banner.sh'
 alias font='bash ~/.termux-theme/font.sh'
 
+suic1de() {
+  (cd ~/ihatemylife && ./s)
+}
+
+progress_bar() {
+  local pct=$1
+  local width=20
+  local filled=$((pct * width / 100))
+  local empty=$((width - filled))
+  local bar=""
+  for ((i=0; i<filled; i++)); do bar="${bar}█"; done
+  for ((i=0; i<empty; i++)); do bar="${bar}░"; done
+  echo "[${bar}] ${pct}%"
+}
+
+ram_used=$(free -m | awk '/Mem:/ {print $3}')
+ram_total=$(free -m | awk '/Mem:/ {print $2}')
+ram_pct=$((ram_used * 100 / ram_total))
+
+cpu_load=$(cat /proc/loadavg | awk '{print $1}')
+cpu_pct=$(awk -v l="$cpu_load" 'BEGIN {p = l * 100; if (p > 100) p = 100; printf "%d", p}')
+
+disk_pct=$(df -h /data | awk 'NR==2 {gsub("%",""); print $5}')
+
 clear
 bash ~/.termux-theme/banner.sh show
 echo ""
 echo "  date    : $(date '+%A, %d %B %Y')"
-echo "  storage : $(df -h /data | awk 'NR==2 {print $3 " / " $2 " (" $5 " used)"}')"
+echo "  storage : $(progress_bar $disk_pct)  $(df -h /data | awk 'NR==2 {print $3 " / " $2}')"
+echo "  ram     : $(progress_bar $ram_pct)  ${ram_used}M / ${ram_total}M"
+echo "  cpu     : $(progress_bar $cpu_pct)  load ${cpu_load}"
 echo ""
