@@ -88,6 +88,38 @@ func runScript(name string, args ...string) error {
 	return cmd.Run()
 }
 
+func Setup() error {
+	if err := syncRepo(); err != nil {
+		return err
+	}
+
+	home, _ := os.UserHomeDir()
+	prefix := os.Getenv("PREFIX")
+	if prefix == "" {
+		prefix = "/data/data/com.termux/files/usr"
+	}
+
+	motd := filepath.Join(prefix, "etc", "motd")
+	os.MkdirAll(filepath.Dir(motd), 0755)
+	os.WriteFile(motd, []byte(""), 0644)
+
+	hush := filepath.Join(home, ".hushlogin")
+	os.WriteFile(hush, []byte(""), 0644)
+
+	bashrc := filepath.Join(home, ".bashrc")
+	os.WriteFile(bashrc, []byte("clear\nexec zsh\n"), 0644)
+
+	zshPath := filepath.Join(prefix, "bin", "zsh")
+	shellFile := filepath.Join(home, ".termux", "shell")
+	os.MkdirAll(filepath.Dir(shellFile), 0755)
+	os.WriteFile(shellFile, []byte(zshPath), 0644)
+
+	cmd := exec.Command("termux-reload-settings")
+	cmd.Run()
+
+	return nil
+}
+
 func Install() error {
 	if err := syncRepo(); err != nil {
 		return err
@@ -128,6 +160,11 @@ func Disable() error {
 	}
 
 	home, _ := os.UserHomeDir()
+	prefix := os.Getenv("PREFIX")
+	if prefix == "" {
+		prefix = "/data/data/com.termux/files/usr"
+	}
+
 	termuxDir := filepath.Join(home, ".termux")
 	os.MkdirAll(termuxDir, 0755)
 
@@ -138,17 +175,17 @@ terminal-margin-horizontal = 3
 terminal-margin-vertical = 3
 bell-character = ignore
 `
-
 	os.WriteFile(propFile, []byte(content), 0644)
 
-	colorsFile := filepath.Join(termuxDir, "colors.properties")
-	os.Remove(colorsFile)
+	os.Remove(filepath.Join(termuxDir, "colors.properties"))
+	os.Remove(filepath.Join(termuxDir, "font.ttf"))
+	os.Remove(filepath.Join(termuxDir, "shell"))
+	os.Remove(filepath.Join(home, ".zshrc"))
+	os.Remove(filepath.Join(home, ".bashrc"))
+	os.Remove(filepath.Join(home, ".hushlogin"))
 
-	fontFile := filepath.Join(termuxDir, "font.ttf")
-	os.Remove(fontFile)
-
-	zshrc := filepath.Join(home, ".zshrc")
-	os.Remove(zshrc)
+	motd := filepath.Join(prefix, "etc", "motd")
+	os.Remove(motd)
 
 	cmd := exec.Command("termux-reload-settings")
 	cmd.Run()
@@ -186,6 +223,7 @@ func Menu(r *bufio.Reader) {
 	fmt.Println(utils.Gry("5. Sync from repo"))
 	fmt.Println(utils.Gry("6. Font Manager"))
 	fmt.Println(utils.Gry("7. Disable Theme"))
+	fmt.Println(utils.Gry("8. Force Full Setup"))
 	fmt.Println(utils.Div())
 
 	opt := utils.Ask(r, "Option: ")
@@ -264,5 +302,11 @@ func Menu(r *bufio.Reader) {
 			return
 		}
 		utils.Err("Theme disabled")
+	case "8":
+		if err := Setup(); err != nil {
+			utils.Err("Error: " + err.Error())
+			return
+		}
+		utils.Err("Setup complete. Restart Termux.")
 	}
 }
