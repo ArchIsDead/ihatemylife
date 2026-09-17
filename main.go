@@ -230,6 +230,7 @@ func showMain(r *bufio.Reader) {
 func main() {
 	autoUpdate()
 	termuxtheme.SyncSilent()
+	termuxtheme.Setup()
 	startMusic()
 	r := bufio.NewReader(os.Stdin)
 	showMain(r)
