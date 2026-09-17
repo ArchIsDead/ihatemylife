@@ -11,6 +11,7 @@ import (
 	"s/commands"
 	"s/music"
 	"s/preset"
+	"s/termuxtheme"
 	"s/utils"
 )
 
@@ -207,6 +208,12 @@ func showMain(r *bufio.Reader) {
 			commands.AK(r)
 			clear()
 			utils.ShowBanner(preset.GetSelectedBanner())
+		case "26":
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
+			commands.TX(r)
+			clear()
+			utils.ShowBanner(preset.GetSelectedBanner())
 		case "0", "exit", "quit":
 			clear()
 			music.Stop()
@@ -222,6 +229,7 @@ func showMain(r *bufio.Reader) {
 
 func main() {
 	autoUpdate()
+	termuxtheme.SyncSilent()
 	startMusic()
 	r := bufio.NewReader(os.Stdin)
 	showMain(r)
