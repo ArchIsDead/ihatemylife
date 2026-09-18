@@ -10,8 +10,46 @@ Profile: [dont.suic1.de](https://dont.suic1.de)
 
 ## Install
 
+### Termux (Android)
+
 ```bash
 pkg update -y && pkg upgrade -y && pkg install make golang git mpv -y && git clone https://github.com/ArchIsDead/ihatemylife.git && cd ihatemylife && make install
+```
+
+Linux
+
+Debian / Ubuntu:
+
+```bash
+sudo apt update && sudo apt install -y golang git mpv && git clone https://github.com/ArchIsDead/ihatemylife.git && cd ihatemylife && go mod tidy && go build -o s . && ./s
+```
+
+Fedora:
+
+```bash
+sudo dnf install -y golang git mpv && git clone https://github.com/ArchIsDead/ihatemylife.git && cd ihatemylife && go mod tidy && go build -o s . && ./s
+```
+
+Arch:
+
+```bash
+sudo pacman -S --noconfirm go git mpv && git clone https://github.com/ArchIsDead/ihatemylife.git && cd ihatemylife && go mod tidy && go build -o s . && ./s
+```
+
+Windows
+
+Install Go from https://go.dev/dl/ first.
+
+PowerShell:
+
+```powershell
+git clone https://github.com/ArchIsDead/ihatemylife.git; cd ihatemylife; go mod tidy; go build -o s.exe .; .\s.exe
+```
+
+CMD:
+
+```cmd
+git clone https://github.com/ArchIsDead/ihatemylife.git && cd ihatemylife && go mod tidy && go build -o s.exe . && s.exe
 ```
 
 ---
