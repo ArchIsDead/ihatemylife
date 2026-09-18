@@ -1,0 +1,52 @@
+export PATH="$HOME/.local/bin:$PATH"
+
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME=""
+
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+
+source $ZSH/oh-my-zsh.sh
+
+export EDITOR=nano
+export VISUAL=nano
+
+PROMPT='%F{218}%~%f %F{245}>%f '
+
+alias ls='ls --color=auto'
+alias ll='ls -lah'
+alias la='ls -A'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias theme='bash ~/.termux-theme/apply.sh'
+alias themes='ls ~/.termux-theme/themes'
+alias banner='bash ~/.termux-theme/banner.sh'
+alias font='bash ~/.termux-theme/font.sh'
+
+suic1de() {
+  (cd ~/ihatemylife && ./s)
+}
+
+progress_bar() {
+  local pct=$1
+  local width=20
+  local filled=$((pct * width / 100))
+  local empty=$((width - filled))
+  local bar=""
+  for ((i=0; i<filled; i++)); do bar="${bar}█"; done
+  for ((i=0; i<empty; i++)); do bar="${bar}░"; done
+  echo "[${bar}] ${pct}%"
+}
+
+ram_used=$(free -m | awk '/Mem:/ {print $3}')
+ram_total=$(free -m | awk '/Mem:/ {print $2}')
+ram_pct=$((ram_used * 100 / ram_total))
+
+disk_pct=$(df -h /data | awk 'NR==2 {gsub("%",""); print $5}')
+
+clear
+bash ~/.termux-theme/banner.sh show
+echo ""
+echo "  date     : $(date '+%A, %d %B %Y')"
+echo "  storage  : $(progress_bar $disk_pct)  $(df -h /data | awk 'NR==2 {print $3 " / " $2}')"
+echo "  ram      : $(progress_bar $ram_pct)  ${ram_used}M / ${ram_total}M"
+echo ""
