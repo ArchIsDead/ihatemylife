@@ -43,10 +43,10 @@ func Load() *Data {
 
 	if _, err := os.Stat(dataPath()); os.IsNotExist(err) {
 		d.Banners = append(d.Banners, Banner{Name: "default", Text: defaultBanner})
-		d.Musics = append(d.Musics, Music{Name: "1tap", Path: "1tap_spotdown.org.mp3"})
+		d.Musics = append(d.Musics, Music{Name: "default", Path: "preset/1tap_spotdown.org.mp3"})
 		d.Selected = "default"
-		d.MusicOn = true
-		d.MusicSel = "1tap"
+		d.MusicOn = false
+		d.MusicSel = "default"
 		d.Volume = 100
 		Save(d)
 		return d
