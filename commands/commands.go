@@ -356,8 +356,8 @@ func BP(r *bufio.Reader) {
 	fmt.Println(utils.Div())
 	fmt.Println(utils.Bld(utils.Wht("[ BYPASS LINK ]")))
 	fmt.Println(utils.Div())
-	fmt.Println(utils.Gry("1. BypassTools (Ad-Link)"))
-	fmt.Println(utils.Gry("2. BypassLink (SFL)"))
+	fmt.Println(utils.Gry("1. Bypass SFL (local)"))
+	fmt.Println(utils.Gry("2. BypassTools (r4-api)"))
 	fmt.Println(utils.Div())
 
 	method := utils.Ask(r, "Method [1]: ")
@@ -366,19 +366,24 @@ func BP(r *bufio.Reader) {
 	}
 	u := utils.Ask(r, "URL: ")
 
-	res, err := bypass.Bypass(u, method)
-	if err != nil {
-		utils.Err("Error: " + err.Error())
+	if method == "2" {
+		res, err := bypass.DoBypassTools(u)
+		if err != nil {
+			utils.Err("Error: " + err.Error())
+			back(r)
+			return
+		}
+		fmt.Println(utils.Div())
+		fmt.Println(utils.Bld(utils.Wht("[ BYPASSTOOLS ]")))
+		fmt.Println(utils.Div())
+		fmt.Println(utils.Gry("Original: ") + utils.Wht(u))
+		fmt.Println(utils.Gry("Direct: ") + utils.Wht(res))
 		back(r)
 		return
 	}
 
-	mname := "BypassTools"
-	if method == "2" {
-		mname = "BypassLink"
-	}
-
-	bypass.Show(u, res, mname)
+	res := bypass.DoSFL(u)
+	res.Show()
 	back(r)
 }
 
