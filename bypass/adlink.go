@@ -45,27 +45,29 @@ func (j *Jar) Get(k string) string {
 }
 
 type Result struct {
-	OK          bool     `json:"ok"`
-	Destination string   `json:"destination,omitempty"`
-	Hops        []string `json:"hops,omitempty"`
-	Error       string   `json:"error,omitempty"`
-	Elapsed     float64  `json:"elapsed_sec"`
+	OK          bool
+	Destination string
+	Hops        []string
+	Error       string
+	Elapsed     float64
 }
 
-func fetch(u string, jar *Jar) (*http.Response, string, error) {
+func rawGet(u string, jar *Jar, followRedirect bool) (*http.Response, string, error) {
 	req, _ := http.NewRequest("GET", u, nil)
 	req.Header.Set("User-Agent", ua)
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
-	if c := jar.Header(); c != "" {
-		req.Header.Set("Cookie", c)
+	if jar != nil {
+		if c := jar.Header(); c != "" {
+			req.Header.Set("Cookie", c)
+		}
 	}
 
-	client := &http.Client{
-		Timeout: 15 * time.Second,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+	client := &http.Client{Timeout: 20 * time.Second}
+	if !followRedirect {
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
-		},
+		}
 	}
 
 	resp, err := client.Do(req)
@@ -73,7 +75,10 @@ func fetch(u string, jar *Jar) (*http.Response, string, error) {
 		return nil, "", err
 	}
 	defer resp.Body.Close()
-	jar.Ingest(resp)
+
+	if jar != nil {
+		jar.Ingest(resp)
+	}
 
 	body, _ := io.ReadAll(resp.Body)
 	return resp, string(body), nil
@@ -91,7 +96,7 @@ func postJSON(u string, payload map[string]interface{}, headers map[string]strin
 	}
 
 	client := &http.Client{
-		Timeout: 15 * time.Second,
+		Timeout: 20 * time.Second,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
@@ -136,6 +141,15 @@ func resolveURL(ref, base string) string {
 	return b.ResolveReference(u).String()
 }
 
+func extractOrigin(formAction, pageURL string) string {
+	full := resolveURL(formAction, pageURL)
+	u, err := url.Parse(full)
+	if err != nil {
+		return ""
+	}
+	return u.Scheme + "://" + u.Host
+}
+
 func bypass(cur, html string, jar *Jar) (string, error) {
 	formRe := regexp.MustCompile(`(?i)<form[^>]+action=["']([^"']+)["']`)
 	rayRe := regexp.MustCompile(`(?i)name=["']ray_id["']\s+value=["']([^"']+)["']`)
@@ -149,84 +163,63 @@ func bypass(cur, html string, jar *Jar) (string, error) {
 		return "", fmt.Errorf("missing form data")
 	}
 
-	form := formM[1]
-	rayID := rayM[1]
-	alias := aliasM[1]
-
-	origin := resolveURL(form, cur)
-	idx := strings.Index(origin[8:], "/")
-	if idx == -1 {
-		idx = len(origin[8:])
+	origin := extractOrigin(formM[1], cur)
+	if origin == "" {
+		return "", fmt.Errorf("no origin")
 	}
-	origin = origin[:8+idx]
 
-	redirectURL := fmt.Sprintf("%s/redirect.php?ray_id=%s&alias=%s", origin, url.QueryEscape(rayID), url.QueryEscape(alias))
+	redirectURL := fmt.Sprintf("%s/redirect.php?ray_id=%s&alias=%s", origin, url.QueryEscape(rayM[1]), url.QueryEscape(aliasM[1]))
 
-	resp, _, err := fetch(redirectURL, jar)
+	jar2 := NewJar()
+	_, _, err := rawGet(redirectURL, jar2, true)
 	if err != nil {
 		return "", err
 	}
-	pageURL := resp.Request.URL.String()
 
-	xsrf := jar.Get("XSRF-TOKEN")
+	xsrf := jar2.Get("XSRF-TOKEN")
 	if xsrf == "" {
 		return "", fmt.Errorf("missing xsrf")
 	}
 
 	apiHeaders := map[string]string{
 		"Origin":           origin,
-		"Referer":          pageURL,
+		"Referer":          redirectURL,
 		"Content-Type":     "application/json",
 		"Accept":           "application/json, */*",
 		"X-Requested-With": "XMLHttpRequest",
 	}
 
 	sessionURL := origin + "/api/session"
-	token := makeToken(xsrf)
-	s1, _ := postJSON(sessionURL, map[string]interface{}{"_token": token}, apiHeaders, jar)
+	_, _ = postJSON(sessionURL, map[string]interface{}{"_token": makeToken(xsrf)}, apiHeaders, jar2)
 
-	step := 1
-	if s1 != nil {
-		if s, ok := s1["step"].(float64); ok {
-			step = int(s)
+	time.Sleep(300 * time.Millisecond)
+
+	verifyURL := origin + "/api/verify"
+	vd, _ := postJSON(verifyURL, map[string]interface{}{"_a": 0, "captcha": nil, "passcode": nil}, apiHeaders, jar2)
+
+	target := "/redirect.php"
+	if vd != nil {
+		if t, ok := vd["target"].(string); ok && t != "" {
+			target = t
 		}
 	}
-
-	ref := pageURL
-
-	if step == 1 {
-		time.Sleep(300 * time.Millisecond)
-		verifyURL := origin + "/api/verify"
-		vd, _ := postJSON(verifyURL, map[string]interface{}{"_a": 0, "captcha": nil, "passcode": nil}, apiHeaders, jar)
-
-		target := "/redirect.php"
-		if vd != nil {
-			if t, ok := vd["target"].(string); ok && t != "" {
-				target = t
-			}
-		}
-		if strings.HasPrefix(target, "/") {
-			target = origin + target
-		}
-
-		resp2, _, err := fetch(target, jar)
-		if err == nil {
-			ref = resp2.Request.URL.String()
-		}
-
-		apiHeaders["Referer"] = ref
-		newXsrf := jar.Get("XSRF-TOKEN")
-		if newXsrf == "" {
-			newXsrf = xsrf
-		}
-		postJSON(sessionURL, map[string]interface{}{"_token": makeToken(newXsrf)}, apiHeaders, jar)
+	if strings.HasPrefix(target, "/") {
+		target = origin + target
 	}
+
+	_, _, _ = rawGet(target, jar2, true)
+
+	xsrf2 := jar2.Get("XSRF-TOKEN")
+	if xsrf2 == "" {
+		xsrf2 = xsrf
+	}
+	_, _ = postJSON(sessionURL, map[string]interface{}{"_token": makeToken(xsrf2)}, apiHeaders, jar2)
 
 	time.Sleep(500 * time.Millisecond)
+
 	key := 500
 	size := fmt.Sprintf("%d.%d", (1920+key)*2, (1080+key)*2)
-	apiHeaders["Referer"] = ref
-	gd, _ := postJSON(origin+"/api/go", map[string]interface{}{"key": key, "size": size}, apiHeaders, jar)
+	gd, _ := postJSON(origin+"/api/go", map[string]interface{}{"key": key, "size": size}, apiHeaders, jar2)
 
 	readyURL := ""
 	if gd != nil {
@@ -242,7 +235,7 @@ func bypass(cur, html string, jar *Jar) (string, error) {
 		readyURL = resolveURL(readyURL, origin)
 	}
 
-	_, body, _ := fetch(readyURL, jar)
+	_, body, _ := rawGet(readyURL, jar2, true)
 	destRe := regexp.MustCompile(`(?i)window\.location\.href\s*=\s*["']([^"']+)["']`)
 	dm := destRe.FindStringSubmatch(body)
 	if len(dm) > 1 {
@@ -265,7 +258,7 @@ func DoSFL(rawURL string) *Result {
 	visited := make(map[string]bool)
 	var hops []string
 
-	for i := 0; i < 15; i++ {
+	for i := 0; i < 20; i++ {
 		if visited[cur] {
 			break
 		}
@@ -273,12 +266,23 @@ func DoSFL(rawURL string) *Result {
 		hops = append(hops, cur)
 
 		jar := NewJar()
-		resp, html, err := fetch(cur, jar)
+		resp, html, err := rawGet(cur, jar, true)
 		if err != nil {
-			return &Result{OK: false, Error: err.Error(), Hops: hops, Elapsed: elapsed(t0)}
+			break
 		}
 
-		if resp.StatusCode >= 300 && resp.StatusCode < 400 {
+		finalURL := ""
+		if resp.Request != nil && resp.Request.URL != nil {
+			finalURL = resp.Request.URL.String()
+		}
+
+		if finalURL != "" && finalURL != cur {
+			cur = finalURL
+			continue
+		}
+
+		status := resp.StatusCode
+		if status >= 300 && status < 400 {
 			loc := resp.Header.Get("Location")
 			if loc != "" {
 				cur = resolveURL(loc, cur)
@@ -294,14 +298,32 @@ func DoSFL(rawURL string) *Result {
 			}
 		}
 
-		re := regexp.MustCompile(`(?i)<meta[^>]+http-equiv=["']refresh["'][^>]+content=["'][^"']*url=([^"']+)["']`)
-		m := re.FindStringSubmatch(html)
-		if len(m) > 1 {
+		metaRe := regexp.MustCompile(`(?i)<meta[^>]+http-equiv=["']refresh["'][^>]+content=["'][^"']*url=([^"']+)["']`)
+		if m := metaRe.FindStringSubmatch(html); len(m) > 1 {
+			cur = resolveURL(strings.TrimSpace(m[1]), cur)
+			continue
+		}
+
+		jsRe := regexp.MustCompile(`(?i)window\.location(?:\.href)?\s*=\s*["']([^"']+)["']`)
+		if m := jsRe.FindStringSubmatch(html); len(m) > 1 {
+			cur = resolveURL(strings.TrimSpace(m[1]), cur)
+			continue
+		}
+
+		aRe := regexp.MustCompile(`(?i)<a[^>]+href=["']([^"']+)["'][^>]*>\s*(?:continue|lanjut|klik|click|here|di sini)`)
+		if m := aRe.FindStringSubmatch(html); len(m) > 1 {
 			cur = resolveURL(strings.TrimSpace(m[1]), cur)
 			continue
 		}
 
 		break
+	}
+
+	if cur == rawURL || cur == "https://"+rawURL {
+		apiRes, err := DoBypassTools(rawURL)
+		if err == nil && apiRes != "" {
+			cur = apiRes
+		}
 	}
 
 	return &Result{
